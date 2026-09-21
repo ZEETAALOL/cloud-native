@@ -1,0 +1,282 @@
+version: '3.8'
+
+services:
+  
+  # ============================================
+  # INFRAESTRUCTURA
+  # ============================================
+  
+  # PostgreSQL - Base de datos compartida
+  postgres:
+    image: postgres:15-alpine
+    container_name: pedidos360-postgres
+    environment:
+      POSTGRES_USER: pedidos360
+      POSTGRES_PASSWORD: pedidos360pass
+      POSTGRES_DB: pedidos360
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    networks:
+      - pedidos360-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pedidos360"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # MongoDB - Base de datos para Catalog
+  mongodb:
+    image: mongo:7-jammy
+    container_name: pedidos360-mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: pedidos360
+      MONGO_INITDB_ROOT_PASSWORD: pedidos360pass
+      MONGO_INITDB_DATABASE: catalog
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - pedidos360-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # RabbitMQ - Message Broker
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: pedidos360-rabbitmq
+    hostname: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin123
+      RABBITMQ_DEFAULT_VHOST: /
+    ports:
+      - "5672:5672"    # AMQP protocol
+      - "15672:15672"  # Management UI
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - pedidos360-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    restart: unless-stopped
+
+  # ============================================
+  # MICROSERVICIOS
+  # ============================================
+  
+  # Microservicio Audit
+  audit:
+    build:
+      context: ../../backend/audit
+      dockerfile: Dockerfile
+    image: pedidos360/audit:latest
+    container_name: pedidos360-audit
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - JAVA_OPTS=-Xmx256m -Xms128m
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/pedidos360
+      - SPRING_DATASOURCE_USERNAME=pedidos360
+      - SPRING_DATASOURCE_PASSWORD=pedidos360pass
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - pedidos360-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8083/actuator/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+
+  # Microservicio Catalog
+  catalog:
+    build:
+      context: ../../backend/catalog
+      dockerfile: Dockerfile
+    image: pedidos360/catalog:latest
+    container_name: pedidos360-catalog
+    ports:
+      - "8084:8084"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - JAVA_OPTS=-Xmx256m -Xms128m
+      - SPRING_DATA_MONGODB_URI=mongodb://pedidos360:pedidos360pass@mongodb:27017/catalog?authSource=admin
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - pedidos360-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8084/actuator/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+
+  # Microservicio Report
+  report:
+    build:
+      context: ../../backend/report
+      dockerfile: Dockerfile
+    image: pedidos360/report:latest
+    container_name: pedidos360-report
+    ports:
+      - "8085:8085"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - JAVA_OPTS=-Xmx256m -Xms128m
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/pedidos360
+      - SPRING_DATASOURCE_USERNAME=pedidos360
+      - SPRING_DATASOURCE_PASSWORD=pedidos360pass
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - pedidos360-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8085/actuator/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+
+  # Microservicio Orders
+  orders:
+    build:
+      context: ../../backend/orders
+      dockerfile: Dockerfile
+    image: pedidos360/orders:latest
+    container_name: pedidos360-orders
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - JAVA_OPTS=-Xmx256m -Xms128m
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/pedidos360
+      - SPRING_DATASOURCE_USERNAME=pedidos360
+      - SPRING_DATASOURCE_PASSWORD=pedidos360pass
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - pedidos360-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8082/actuator/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+
+  # Microservicio Notify
+  notify:
+    build:
+      context: ../../backend/notify
+      dockerfile: Dockerfile
+    image: pedidos360/notify:latest
+    container_name: pedidos360-notify
+    ports:
+      - "8086:8086"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - JAVA_OPTS=-Xmx256m -Xms128m
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=admin
+      - SPRING_RABBITMQ_PASSWORD=admin123
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - pedidos360-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8086/actuator/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+
+  # Backend for Frontend (BFF)
+  bff:
+    build:
+      context: ../../backend/bff
+      dockerfile: Dockerfile
+    image: pedidos360/bff:latest
+    container_name: pedidos360-bff
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - JAVA_OPTS=-Xmx512m -Xms256m
+      - ENTRA_ISSUER_URI=${ENTRA_ISSUER_URI}
+      - ENTRA_API_CLIENT_ID=${ENTRA_API_CLIENT_ID}
+      - MICROSERVICES_CLIENTES_BASE_URL=http://orders:8082
+      - MICROSERVICES_AUDIT_BASE_URL=http://audit:8083
+      - MICROSERVICES_CATALOG_BASE_URL=http://catalog:8084
+      - MICROSERVICES_REPORT_BASE_URL=http://report:8085
+      - MICROSERVICES_NOTIFY_BASE_URL=http://notify:8086
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=admin
+      - SPRING_RABBITMQ_PASSWORD=admin123
+    depends_on:
+      audit:
+        condition: service_healthy
+      catalog:
+        condition: service_healthy
+      report:
+        condition: service_healthy
+      notify:
+        condition: service_healthy
+      orders:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - pedidos360-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 90s
+    restart: unless-stopped
+
+# ============================================
+# VOLUMES
+# ============================================
+volumes:
+  postgres_data:
+    name: pedidos360-postgres-data
+  mongodb_data:
+    name: pedidos360-mongodb-data
+  rabbitmq_data:
+    name: pedidos360-rabbitmq-data
+
+# ============================================
+# NETWORKS
+# ============================================
+networks:
+  pedidos360-network:
+    driver: bridge
+    name: pedidos360-network
