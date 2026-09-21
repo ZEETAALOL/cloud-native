@@ -19,7 +19,7 @@ RED='\033[0;31m'
 NC='\033[0m' # No Color
 
 # Variables
-PUBLIC_IP="35.171.18.87"
+PUBLIC_IP="3.85.37.168"
 KEYCLOAK_URL="http://${PUBLIC_IP}:8080"
 PROJECT_DIR="/home/ubuntu/cloud-native"
 
@@ -86,14 +86,14 @@ fi
 # Actualizar .env con la IP pública
 cat > .env << EOF
 # Variables de entorno para Docker Compose - AWS EC2
-# IP Pública: ${PUBLIC_IP}
+# IP Pública: 3.85.37.168
 
 # Azure AD Configuration
 ENTRA_ISSUER_URI=https://login.microsoftonline.com/47c2bee0-5950-430f-9276-bfc083e3d1da/v2.0
 ENTRA_API_CLIENT_ID=faba8741-ba0d-440c-b061-f1aa893eb957
 
 # Keycloak Configuration
-KEYCLOAK_URL=${KEYCLOAK_URL}
+KEYCLOAK_URL=http://3.85.37.168:8080
 KEYCLOAK_REALM=pedidos360
 KEYCLOAK_CLIENT_ID=pedidos360-client
 
@@ -101,7 +101,7 @@ KEYCLOAK_CLIENT_ID=pedidos360-client
 SPRING_PROFILES_ACTIVE=docker,prod
 
 # Public IP for services
-PUBLIC_IP=${PUBLIC_IP}
+PUBLIC_IP=3.85.37.168
 EOF
 
 echo -e "${GREEN}✓ Variables de entorno configuradas${NC}"
