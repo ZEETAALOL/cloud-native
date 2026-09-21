@@ -1,0 +1,183 @@
+{
+  "rabbit_version": "3.13.0",
+  "rabbitmq_version": "3.13.0",
+  "users": [
+    {
+      "name": "admin",
+      "password_hash": "JThSk+OzKs+2aFGkKvXcVR3s0KvvYYvTJxr3vFKSfCOGOXrE",
+      "hashing_algorithm": "rabbit_password_hashing_sha256",
+      "tags": ["administrator"]
+    }
+  ],
+  "vhosts": [
+    {
+      "name": "/"
+    }
+  ],
+  "permissions": [
+    {
+      "user": "admin",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    }
+  ],
+  "exchanges": [
+    {
+      "name": "cmd.direct",
+      "vhost": "/",
+      "type": "direct",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    },
+    {
+      "name": "cmd.topic",
+      "vhost": "/",
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    },
+    {
+      "name": "cmd.dead.dlx",
+      "vhost": "/",
+      "type": "direct",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    }
+  ],
+  "queues": [
+    {
+      "name": "q.cmd.email",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "cmd.dead.dlx",
+        "x-dead-letter-routing-key": "email.dlq",
+        "x-message-ttl": 300000
+      }
+    },
+    {
+      "name": "q.cmd.email.dlq",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-message-ttl": 86400000
+      }
+    },
+    {
+      "name": "q.cmd.kitchen",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "cmd.dead.dlx",
+        "x-dead-letter-routing-key": "kitchen.dlq",
+        "x-message-ttl": 300000
+      }
+    },
+    {
+      "name": "q.cmd.kitchen.dlq",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-message-ttl": 86400000
+      }
+    },
+    {
+      "name": "q.cmd.sms",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "cmd.dead.dlx",
+        "x-dead-letter-routing-key": "sms.dlq",
+        "x-message-ttl": 300000
+      }
+    },
+    {
+      "name": "q.cmd.sms.dlq",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-message-ttl": 86400000
+      }
+    }
+  ],
+  "bindings": [
+    {
+      "source": "cmd.direct",
+      "vhost": "/",
+      "destination": "q.cmd.email",
+      "destination_type": "queue",
+      "routing_key": "notify.email",
+      "arguments": {}
+    },
+    {
+      "source": "cmd.direct",
+      "vhost": "/",
+      "destination": "q.cmd.kitchen",
+      "destination_type": "queue",
+      "routing_key": "notify.kitchen",
+      "arguments": {}
+    },
+    {
+      "source": "cmd.direct",
+      "vhost": "/",
+      "destination": "q.cmd.sms",
+      "destination_type": "queue",
+      "routing_key": "notify.sms",
+      "arguments": {}
+    },
+    {
+      "source": "cmd.topic",
+      "vhost": "/",
+      "destination": "q.cmd.email",
+      "destination_type": "queue",
+      "routing_key": "notify.email.*",
+      "arguments": {}
+    },
+    {
+      "source": "cmd.topic",
+      "vhost": "/",
+      "destination": "q.cmd.kitchen",
+      "destination_type": "queue",
+      "routing_key": "notify.kitchen.*",
+      "arguments": {}
+    },
+    {
+      "source": "cmd.dead.dlx",
+      "vhost": "/",
+      "destination": "q.cmd.email.dlq",
+      "destination_type": "queue",
+      "routing_key": "email.dlq",
+      "arguments": {}
+    },
+    {
+      "source": "cmd.dead.dlx",
+      "vhost": "/",
+      "destination": "q.cmd.kitchen.dlq",
+      "destination_type": "queue",
+      "routing_key": "kitchen.dlq",
+      "arguments": {}
+    },
+    {
+      "source": "cmd.dead.dlx",
+      "vhost": "/",
+      "destination": "q.cmd.sms.dlq",
+      "destination_type": "queue",
+      "routing_key": "sms.dlq",
+      "arguments": {}
+    }
+  ]
+}
