@@ -167,7 +167,7 @@ services:
     image: pedidos360/orders:latest
     container_name: pedidos360-orders
     ports:
-      - "8082:8082"
+      - "8082:8081"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - JAVA_OPTS=-Xmx256m -Xms128m
@@ -180,7 +180,7 @@ services:
     networks:
       - pedidos360-network
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8082/actuator/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/actuator/health"]
       interval: 30s
       timeout: 3s
       retries: 3
@@ -230,7 +230,7 @@ services:
       - JAVA_OPTS=-Xmx512m -Xms256m
       - ENTRA_ISSUER_URI=${ENTRA_ISSUER_URI}
       - ENTRA_API_CLIENT_ID=${ENTRA_API_CLIENT_ID}
-      - MICROSERVICES_CLIENTES_BASE_URL=http://orders:8082
+      - MICROSERVICES_CLIENTES_BASE_URL=http://orders:8081
       - MICROSERVICES_AUDIT_BASE_URL=http://audit:8083
       - MICROSERVICES_CATALOG_BASE_URL=http://catalog:8084
       - MICROSERVICES_REPORT_BASE_URL=http://report:8085
