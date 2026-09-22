@@ -19,10 +19,10 @@ public class ClienteController {
         
         // Cliente de ejemplo del sistema Pedidos360
         ClienteResponse cliente = new ClienteResponse(
-            "19876543-2",
-            "María",
-            "González",
-            "Av. Libertador Bernardo O'Higgins 1234",
+            "20456789-3",
+            "Bastián",
+            "Martínez",
+            "Av. Providencia 2594, Providencia",
             "Santiago"
         );
         

@@ -45,10 +45,10 @@ Retorna información del cliente registrado en el sistema.
 **Respuesta (200):**
 ```json
 {
-  "rut": "19876543-2",
-  "nombre": "María",
-  "apellido": "González",
-  "direccion": "Av. Libertador Bernardo O'Higgins 1234",
+  "rut": "20456789-3",
+  "nombre": "Bastián",
+  "apellido": "Martínez",
+  "direccion": "Av. Providencia 2594, Providencia",
   "comuna": "Santiago"
 }
 ```
@@ -89,7 +89,7 @@ mvn spring-boot:run
 
 # Deberías ver:
 # INFO: Solicitud recibida en /clientes
-# INFO: Retornando cliente: María González
+# INFO: Retornando cliente: Bastián Martínez
 ```
 
 ## 🚀 Futuras Mejoras
