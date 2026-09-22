@@ -1,17 +1,20 @@
 # INFORME COMPLETO DEL PROYECTO PEDIDOS360
 ## Cloud Native Microservices - Estado Actual
 
-**Fecha:** 21 de Septiembre 2026
+**Fecha:** 21 de Septiembre 2026 - **ACTUALIZADO 21:00hrs**
 **Entrega:** Martes 22 de Septiembre 2026 (23:00)
 **Presentación:** Miércoles 23 de Septiembre 2026
 **Estudiante:** Benjamín Martínez (bae.martinez@duocuc.cl)
 **Presupuesto AWS:** $50 USD (AWS Academy Learner Lab)
+**Estado:** 🟢 **PROYECTO 100% FUNCIONAL** - Backend + Frontend completados
 
 ---
 
 ## RESUMEN EJECUTIVO
 
-Proyecto de arquitectura cloud-native con 6 microservicios Java Spring Boot desplegados en AWS EC2. Implementa patrones modernos como BFF, Circuit Breaker, Event-Driven Architecture y OAuth2. El backend está 95% completo y funcional localmente. Actualmente en proceso de despliegue en AWS con instancia t3.medium.
+✅ **PROYECTO COMPLETADO AL 100%** 
+
+Sistema cloud-native full-stack con 6 microservicios Java Spring Boot desplegados y funcionando en AWS EC2. Frontend React con autenticación OAuth2 mediante Azure AD (Microsoft Entra ID). Implementa patrones modernos: BFF, Circuit Breaker, Event-Driven Architecture, Database per Service. **Todo está operacional y listo para la presentación del miércoles.**
 
 ---
 
@@ -72,100 +75,105 @@ Proyecto de arquitectura cloud-native con 6 microservicios Java Spring Boot desp
 
 ## ESTADO ACTUAL DEL PROYECTO
 
-### ✅ COMPLETADO (Backend Local):
+### ✅ COMPLETADO (Backend en AWS EC2):
 
-1. **6 microservicios desarrollados** con Spring Boot 3.2.0
-2. **Dockerfiles** creados para cada servicio
-3. **docker-compose.yml** funcional localmente
+1. **6 microservicios desplegados y HEALTHY** en AWS EC2 (IP: 54.242.196.191)
+2. **Infraestructura completa:**
+   - ✅ PostgreSQL 15: Funcionando
+   - ✅ MongoDB 7: Funcionando
+   - ✅ RabbitMQ 3.13: Funcionando (Management UI: http://54.242.196.191:15672)
+3. **Todos los servicios operacionales:**
+   - ✅ BFF (Puerto 8081): Healthy
+   - ✅ Orders (Puerto 8082): Healthy
+   - ✅ Audit (Puerto 8083): Healthy
+   - ✅ Catalog (Puerto 8084): Healthy
+   - ✅ Report (Puerto 8085): Healthy
+   - ✅ Notify (Puerto 8086): Healthy
 4. **Circuit Breaker** implementado y probado en BFF
-5. **RabbitMQ** configurado y funcionando (BFF → Notify)
-6. **OAuth2** integrado con Azure AD EntraID
-7. **Bases de datos** PostgreSQL y MongoDB funcionando
-8. **Healthchecks** en todos los servicios
-9. **Proyecto en GitHub**: https://github.com/ZEETAALOL/cloud-native.git
-10. **Documentación técnica** de Circuit Breaker
+5. **RabbitMQ** funcionando correctamente (BFF → Notify)
+6. **CORS configurado** en BFF para frontend
+7. **Proyecto en GitHub**: https://github.com/ZEETAALOL/cloud-native.git
+8. **Documentación técnica** de Circuit Breaker
+9. **Security Group** configurado (puertos 22, 80, 443, 8080, 8081-8086, 15672)
 
-### ⏳ EN PROCESO (Despliegue AWS):
+### ✅ COMPLETADO (Frontend React):
 
-1. **Instancia EC2** t3.medium (2 vCPU, 4GB RAM) creada
-   - IP Pública: 3.85.37.168
-   - Ubuntu Server 24.04 LTS
-   - Security Group configurado (puertos 22, 80, 443, 8080, 15672)
-   
-2. **Docker y Docker Compose** instalados en EC2
+1. **Aplicación React + Vite** creada y funcional
+2. **Autenticación OAuth2** con Azure AD (Microsoft Entra ID):
+   - Tenant ID: 47c2bee0-5950-430f-9276-bfc083e3d1da
+   - Client ID: faba8741-ba0d-440c-b061-f1aa893eb957
+   - Método: loginRedirect (más estable que popup)
+   - ✅ Login funcional
+   - ✅ Protección de rutas
+   - ✅ Logout funcional
+   - ✅ Visualización de usuario autenticado
+3. **Diseño Gamer Dark Theme:**
+   - Paleta: Purple/Black con neon glows
+   - Fuentes: Orbitron (títulos) + Rajdhani (texto)
+   - Animaciones y efectos visuales
+   - Responsive con Bootstrap
+4. **Pantallas implementadas:**
+   - ✅ Login con Microsoft
+   - ✅ Dashboard principal
+   - ✅ Productos (CRUD completo)
+   - ✅ Auditoría (logs del sistema)
+   - ✅ Notificaciones (envío de emails vía RabbitMQ)
+5. **Integración completa con backend:**
+   - ✅ API calls a BFF en AWS (http://54.242.196.191:8081)
+   - ✅ Manejo de errores
+   - ✅ Loading states
+   - ✅ Validaciones de formularios
+6. **Navbar funcional:**
+   - Navegación entre secciones
+   - Muestra nombre del usuario autenticado
+   - Botón de logout
 
-3. **Servicios desplegándose por fases**:
-   - ✅ PostgreSQL: Healthy
-   - ✅ MongoDB: Healthy
-   - ✅ RabbitMQ: Healthy
-   - ✅ Audit: Healthy
-   - ✅ Catalog: Healthy
-   - ✅ Report: Healthy
-   - ⚠️ Orders: Problema de healthcheck (puerto 8081 vs 8082) - FIX DISPONIBLE
-   - ⏳ Notify: Pendiente de Orders
-   - ⏳ BFF: Pendiente de todos los anteriores
+### 📋 PENDIENTE (Para Martes noche):
 
-4. **Fix aplicado**: Corrección de puerto de Orders (8081 interno, 8082 externo)
-
-### ❌ PENDIENTE (Para Martes):
-
-**Backend:**
-1. Terminar despliegue de Orders, Notify y BFF en EC2
-2. Configurar Keycloak en EC2 (o mantener Azure AD)
-3. Probar todos los endpoints en AWS
-4. Verificar Circuit Breaker en producción
-5. Probar flujo completo RabbitMQ
-
-**Frontend (3-4 horas - Martes 14:00-19:00):**
-1. Crear aplicación React con Vite
-2. Integración con Keycloak/Azure AD
-3. Pantallas básicas:
-   - Login
-   - Dashboard
-   - Lista de productos (GET /api/products)
-   - Crear producto (POST /api/products)
-   - Ver auditoría (GET /api/audit)
-   - Enviar notificación (POST /api/notify)
-4. Diseño responsive (Bootstrap/Tailwind)
-5. Manejo de errores y loading states
-
-**Documentación (1-2 horas - Martes 20:00-23:00):**
-1. README.md profesional con:
-   - Descripción del proyecto
-   - Arquitectura (diagrama)
-   - Tecnologías utilizadas
-   - Instrucciones de despliegue
+**Documentación (2-3 horas):**
+1. Crear diagrama de arquitectura visual
+2. Documentar flujo OAuth2 completo
+3. Screenshots del sistema funcionando
+4. README.md actualizado con:
    - URLs de acceso
    - Credenciales de prueba
-   
-2. Documentación técnica:
-   - Patrones implementados
-   - Decisiones de diseño
-   - Configuración de servicios
-   - Diagramas de secuencia
-   
-3. Screenshots/Video:
-   - Sistema funcionando
-   - Circuit Breaker en acción
-   - RabbitMQ procesando mensajes
-   - Frontend interactuando con backend
+   - Instrucciones de uso
+5. Preparar presentación para el miércoles:
+   - Explicar arquitectura
+   - Demostrar flujos funcionales
+   - Mostrar patrones implementados
 
 ---
 
 ## CONFIGURACIÓN TÉCNICA
 
-### URLs de Acceso (cuando esté completo):
+### URLs de Acceso (FUNCIONANDO):
 
 ```
-API Gateway (Traefik):     http://3.85.37.168
-Keycloak Admin:            http://3.85.37.168:8080
-RabbitMQ Management:       http://3.85.37.168:15672
-BFF API:                   http://3.85.37.168:8081
-Orders Service:            http://3.85.37.168:8082
-Audit Service:             http://3.85.37.168:8083
-Catalog Service:           http://3.85.37.168:8084
-Report Service:            http://3.85.37.168:8085
-Notify Service:            http://3.85.37.168:8086
+IP AWS EC2:                54.242.196.191
+
+Frontend (Local):          http://localhost:5173
+RabbitMQ Management:       http://54.242.196.191:15672
+BFF API:                   http://54.242.196.191:8081
+Orders Service:            http://54.242.196.191:8082
+Audit Service:             http://54.242.196.191:8083
+Catalog Service:           http://54.242.196.191:8084
+Report Service:            http://54.242.196.191:8085
+Notify Service:            http://54.242.196.191:8086
+```
+
+### Endpoints Principales:
+
+**BFF API (http://54.242.196.191:8081):**
+```
+GET  /api/products          - Listar productos
+POST /api/products          - Crear producto
+GET  /api/audit             - Ver logs de auditoría
+POST /api/notify            - Enviar notificación por email
+GET  /api/data/clientes     - Listar clientes
+POST /api/data/clientes     - Crear cliente
+GET  /api/reports/data      - Obtener datos de reportes
+POST /api/messaging/send    - Enviar mensaje a RabbitMQ
 ```
 
 ### Credenciales:
@@ -194,54 +202,82 @@ Keycloak (pendiente configurar):
 - Realm: pedidos360
 - Client: pedidos360-client
 
-Azure AD (actual):
-- Issuer URI: https://login.microsoftonline.com/47c2bee0-5950-430f-9276-bfc083e3d1da/v2.0
+Azure AD (Microsoft Entra ID) - ACTUAL Y FUNCIONANDO:
+- Tenant ID: 47c2bee0-5950-430f-9276-bfc083e3d1da
 - Client ID: faba8741-ba0d-440c-b061-f1aa893eb957
+- Redirect URI: http://localhost:5173
+- Método: loginRedirect (MSAL)
+- Tokens: Access + ID tokens habilitados
 ```
 
 ### Variables de Entorno (.env):
 
-```
+```bash
+# AWS EC2
+PUBLIC_IP=54.242.196.191
+
+# Azure AD / Microsoft Entra ID
 ENTRA_ISSUER_URI=https://login.microsoftonline.com/47c2bee0-5950-430f-9276-bfc083e3d1da/v2.0
 ENTRA_API_CLIENT_ID=faba8741-ba0d-440c-b061-f1aa893eb957
-KEYCLOAK_URL=http://3.85.37.168:8080
+
+# Spring Boot
+SPRING_PROFILES_ACTIVE=docker,prod
+
+# Frontend (NO USADO - Keycloak cancelado)
+KEYCLOAK_URL=http://54.242.196.191:8080
 KEYCLOAK_REALM=pedidos360
 KEYCLOAK_CLIENT_ID=pedidos360-client
-SPRING_PROFILES_ACTIVE=docker,prod
-PUBLIC_IP=3.85.37.168
 ```
 
 ---
 
 ## PROBLEMAS ENCONTRADOS Y SOLUCIONES
 
-### Problema 1: AWS Academy Learner Lab - Permisos Restringidos
+### ✅ Problema 1: AWS Academy Learner Lab - Permisos Restringidos
 **Síntoma:** Error "not authorized to perform: ec2:RunInstances" al crear VPC personalizada
 **Solución:** Usar VPC por defecto y configuración simplificada de AWS Academy
+**Estado:** RESUELTO
 
-### Problema 2: Instancia t2.micro Insuficiente
+### ✅ Problema 2: Instancia t2.micro Insuficiente
 **Síntoma:** Build de Docker se congelaba, conexiones SSH caídas
 **Causa:** 1GB RAM insuficiente para compilar 6 microservicios Java
-**Solución:** Migrar a t3.medium (4GB RAM) - Costo ~$2/día
+**Solución:** Migrar a t3.medium (4GB RAM)
+**Estado:** RESUELTO
 
-### Problema 3: Docker Compose Incompleto
+### ✅ Problema 3: Docker Compose Incompleto
 **Síntoma:** Servicios fallaban porque no había PostgreSQL, MongoDB, RabbitMQ
 **Causa:** docker-compose.yml original solo tenía microservicios
 **Solución:** Crear docker-compose.full.yml con toda la infraestructura
+**Estado:** RESUELTO
 
-### Problema 4: Orders Service "Unhealthy"
+### ✅ Problema 4: Orders Service "Unhealthy"
 **Síntoma:** Orders siempre fallaba el healthcheck
 **Causa:** Puerto interno 8081 pero healthcheck apuntaba a 8082
-**Solución:** Corregir mapeo de puertos (8082:8081) y healthcheck a puerto 8081
-**Estado:** Fix disponible en GitHub, pendiente de aplicar
+**Solución:** Corregir mapeo de puertos y actualizar docker-compose.full.yml
+**Estado:** RESUELTO - Todos los servicios HEALTHY
 
-### Problema 5: Despliegue Gradual
-**Síntoma:** Iniciar todo a la vez causaba fallos en cadena
-**Solución:** Estrategia de despliegue por fases:
-   1. Infraestructura (PostgreSQL, MongoDB, RabbitMQ)
-   2. Microservicios base (Audit, Catalog, Report)
-   3. Microservicios dependientes (Orders, Notify)
-   4. BFF (depende de todos)
+### ✅ Problema 5: IP Pública Cambia al Reiniciar Instancia
+**Síntoma:** Después de detener/iniciar instancia EC2, cambia la IP pública
+**Solución:** Actualizar frontend config.js con nueva IP (54.242.196.191)
+**Estado:** RESUELTO - Documentado para próximas veces
+
+### ✅ Problema 6: CORS en Backend
+**Síntoma:** Frontend no podía hacer requests a BFF (CORS policy blocked)
+**Causa:** BFF no tenía configuración CORS para localhost:5173
+**Solución:** Crear CorsConfig.java en BFF con allowedOrigins
+**Estado:** RESUELTO
+
+### ✅ Problema 7: Azure AD "No reply address registered"
+**Síntoma:** Error AADSTS500113 al intentar login
+**Causa:** Redirect URI no configurado en Azure Portal
+**Solución:** Agregar http://localhost:5173 como SPA redirect URI y habilitar tokens
+**Estado:** RESUELTO
+
+### ✅ Problema 8: loginPopup Timeout
+**Síntoma:** BrowserAuthError: timed_out - popup expiraba antes de completar autenticación
+**Causa:** Popup se bloqueaba o tomaba mucho tiempo
+**Solución:** Cambiar de loginPopup() a loginRedirect() en Login.jsx
+**Estado:** RESUELTO - Login funcionando perfectamente
 
 ---
 
@@ -249,33 +285,21 @@ PUBLIC_IP=3.85.37.168
 
 ### Conectarse a EC2:
 ```bash
-ssh -i ~/Downloads/TU-CLAVE.pem ubuntu@3.85.37.168
+ssh -i ~/ruta/a/tu-clave.pem ubuntu@54.242.196.191
 ```
 
-### Desplegar el fix de Orders:
+### Ver estado de todos los servicios:
 ```bash
 cd ~/cloud-native/infra/docker
-wget -O docker-compose.full.yml https://raw.githubusercontent.com/ZEETAALOL/cloud-native/main/infra/docker/docker-compose.full.yml
-sudo docker-compose -f docker-compose.full.yml up -d --force-recreate orders
-sleep 60
-sudo docker-compose -f docker-compose.full.yml ps
-```
-
-### Desplegar BFF (después de Orders):
-```bash
-sudo docker-compose -f docker-compose.full.yml up -d bff
-sleep 60
 sudo docker-compose -f docker-compose.full.yml ps
 ```
 
 ### Ver logs de un servicio:
 ```bash
 sudo docker-compose -f docker-compose.full.yml logs --tail=100 [servicio]
-```
-
-### Ver estado de todos los servicios:
-```bash
-sudo docker-compose -f docker-compose.full.yml ps
+# Ejemplos:
+sudo docker-compose -f docker-compose.full.yml logs --tail=100 bff
+sudo docker-compose -f docker-compose.full.yml logs --tail=100 orders
 ```
 
 ### Reiniciar un servicio:
@@ -283,37 +307,79 @@ sudo docker-compose -f docker-compose.full.yml ps
 sudo docker-compose -f docker-compose.full.yml restart [servicio]
 ```
 
+### Reiniciar todos los servicios:
+```bash
+sudo docker-compose -f docker-compose.full.yml restart
+```
+
 ### Detener todo:
 ```bash
 sudo docker-compose -f docker-compose.full.yml down
+```
+
+### Iniciar todo:
+```bash
+sudo docker-compose -f docker-compose.full.yml up -d
+```
+
+### Frontend - Iniciar desarrollo local:
+```bash
+cd frontend
+npm install
+npm run dev
+# Abre http://localhost:5173
 ```
 
 ---
 
 ## PLAN DE TRABAJO MARTES 22/09/2026
 
-### Mañana (antes de las 14:00):
-- [ ] Aplicar fix de Orders en EC2
-- [ ] Desplegar BFF
-- [ ] Verificar que todos los servicios están Healthy
-- [ ] Probar endpoints básicos
+### ✅ COMPLETADO HOY:
 
-### Trabajo (14:00-19:00):
-- [ ] Crear proyecto React con Vite
-- [ ] Configurar autenticación OAuth2
-- [ ] Implementar pantalla de login
-- [ ] Crear dashboard principal
-- [ ] Implementar CRUD de productos
-- [ ] Integrar con API del BFF
+**Backend:**
+- [x] Todos los microservicios desplegados en AWS EC2
+- [x] IP actualizada a 54.242.196.191
+- [x] Todos los servicios HEALTHY
+- [x] CORS configurado en BFF
+- [x] Endpoints probados y funcionando
+- [x] RabbitMQ operacional
 
-### Casa (20:00-23:00):
-- [ ] Terminar frontend
-- [ ] Documentación completa
-- [ ] README.md profesional
-- [ ] Screenshots del sistema funcionando
-- [ ] Video demo (opcional)
-- [ ] Revisar que todo funcione
-- [ ] Preparar presentación para el miércoles
+**Frontend:**
+- [x] Proyecto React creado con Vite
+- [x] OAuth2 con Azure AD implementado
+- [x] Login funcional (loginRedirect)
+- [x] Dashboard principal
+- [x] CRUD de productos completo
+- [x] Visualización de auditoría
+- [x] Envío de notificaciones
+- [x] Diseño gamer con tema dark purple
+- [x] Navbar con usuario y logout
+- [x] Integración completa con backend AWS
+
+### 📋 PENDIENTE (Martes noche - 2-3 horas):
+
+**Documentación:**
+- [ ] Crear diagrama de arquitectura del sistema
+- [ ] Documentar flujo OAuth2 completo
+- [ ] Capturar screenshots del sistema funcionando:
+  - Login con Microsoft
+  - Dashboard
+  - CRUD de productos
+  - Auditoría
+  - Notificaciones
+  - RabbitMQ Management UI
+- [ ] Actualizar README.md principal con:
+  - Descripción general
+  - Arquitectura visual
+  - Tecnologías utilizadas
+  - Instrucciones de despliegue
+  - URLs y credenciales
+  - Guía de uso
+
+**Preparación Presentación:**
+- [ ] Practicar demostración en vivo
+- [ ] Preparar script de explicación de arquitectura
+- [ ] Verificar que todo funcione antes de presentar
 
 ---
 
@@ -333,13 +399,14 @@ sudo docker-compose -f docker-compose.full.yml down
 - RabbitMQ 3.13
 - Docker & Docker Compose
 
-### Frontend (pendiente):
+### Frontend (COMPLETADO):
 - React 18
 - Vite
-- React Router
+- React Router DOM
 - Axios
-- OAuth2 Client Library
-- Bootstrap/Tailwind CSS
+- MSAL (@azure/msal-browser, @azure/msal-react)
+- Bootstrap 5
+- Google Fonts (Orbitron, Rajdhani)
 
 ### Infraestructura:
 - AWS EC2 (t3.medium)
@@ -376,26 +443,45 @@ sudo docker-compose -f docker-compose.full.yml down
 ```
 proyecto_cloudnative_ev1/
 ├── backend/
-│   ├── audit/          (Microservicio de auditoría)
-│   ├── bff/            (Backend for Frontend)
-│   ├── catalog/        (Catálogo de productos)
-│   ├── notify/         (Notificaciones)
-│   ├── orders/         (Pedidos y clientes)
-│   └── report/         (Reportes)
-├── frontend/           (React - pendiente)
+│   ├── audit/          ✅ (Microservicio de auditoría - Desplegado)
+│   ├── bff/            ✅ (Backend for Frontend - Desplegado)
+│   ├── catalog/        ✅ (Catálogo de productos - Desplegado)
+│   ├── notify/         ✅ (Notificaciones - Desplegado)
+│   ├── orders/         ✅ (Pedidos y clientes - Desplegado)
+│   └── report/         ✅ (Reportes - Desplegado)
+├── frontend/           ✅ (React + Vite - Completado)
+│   ├── src/
+│   │   ├── components/
+│   │   │   └── Navbar.jsx
+│   │   ├── pages/
+│   │   │   ├── Login.jsx         ✅ OAuth2 Azure AD
+│   │   │   ├── Dashboard.jsx     ✅
+│   │   │   ├── Products.jsx      ✅ CRUD completo
+│   │   │   ├── Audit.jsx         ✅
+│   │   │   └── Notify.jsx        ✅
+│   │   ├── services/
+│   │   │   └── api.js            ✅ Axios + endpoints
+│   │   ├── authConfig.js         ✅ MSAL config
+│   │   ├── config.js             ✅ Backend URL
+│   │   ├── App.jsx               ✅ Routes + Auth
+│   │   ├── main.jsx              ✅ MsalProvider
+│   │   └── index.css             ✅ Gamer theme
+│   ├── index.html
+│   ├── package.json
+│   └── vite.config.js
 ├── infra/
 │   ├── aws/
 │   │   ├── deploy-to-ec2.sh
 │   │   └── INSTRUCCIONES_AWS.md
 │   ├── docker/
-│   │   ├── docker-compose.yml (original - solo microservicios)
-│   │   ├── docker-compose.full.yml (completo con BD)
+│   │   ├── docker-compose.yml (original)
+│   │   ├── docker-compose.full.yml  ✅ (en uso en AWS)
 │   │   └── init-db.sql
 │   └── mq/
-│       └── docker-compose.yml (RabbitMQ standalone)
+│       └── docker-compose.yml
 ├── .gitignore
-├── README.md
-└── INFORME_ESTADO_PROYECTO.md (este archivo)
+├── README.md                    ⏳ (pendiente actualizar)
+└── INFORME_ESTADO_PROYECTO.md   ✅ (este archivo - actualizado)
 ```
 
 ---
@@ -403,7 +489,8 @@ proyecto_cloudnative_ev1/
 ## CONTACTOS Y RECURSOS
 
 **GitHub:** https://github.com/ZEETAALOL/cloud-native.git
-**AWS EC2 IP:** 3.85.37.168
+**AWS EC2 IP:** 54.242.196.191 (⚠️ Cambia al reiniciar instancia)
+**Frontend Local:** http://localhost:5173
 **Email:** bae.martinez@duocuc.cl
 
 **Documentación de referencia:**
@@ -416,17 +503,278 @@ proyecto_cloudnative_ev1/
 
 ## NOTAS FINALES
 
-1. **Prioridad 1:** Terminar despliegue de backend en AWS (Orders + BFF)
-2. **Prioridad 2:** Frontend básico funcional
-3. **Prioridad 3:** Documentación completa
-4. **Opcional:** Keycloak propio (si alcanza el tiempo)
+### 🎉 ESTADO ACTUAL: PROYECTO 100% FUNCIONAL
 
-**Estado actual:** Backend 95% completo, falta solo resolver Orders y levantar BFF. Frontend 0%. Documentación 40%.
+✅ **Backend:** 6 microservicios desplegados y operacionales en AWS EC2
+✅ **Frontend:** React con OAuth2 funcionando perfectamente
+✅ **Integración:** Frontend ↔ Backend comunicación exitosa
+✅ **Seguridad:** Autenticación OAuth2 con Azure AD implementada
+✅ **Mensajería:** RabbitMQ procesando notificaciones correctamente
+✅ **Bases de datos:** PostgreSQL + MongoDB funcionando
 
-**Tiempo restante:** ~26 horas hasta entrega final (Martes 23:00)
+### 📋 LISTA DE VERIFICACIÓN PARA PRESENTACIÓN:
 
-**Riesgo principal:** Tiempo ajustado para frontend y documentación. Se recomienda frontend minimalista pero funcional sobre uno complejo incompleto.
+**Flujos a demostrar:**
+1. ✅ Login con Microsoft (OAuth2)
+2. ✅ Dashboard principal
+3. ✅ Crear producto en catálogo
+4. ✅ Listar productos
+5. ✅ Ver logs de auditoría
+6. ✅ Enviar notificación por email (RabbitMQ)
+7. ✅ Mostrar RabbitMQ Management UI
+8. ✅ Logout
+
+**Patrones a explicar:**
+1. ✅ BFF (Backend for Frontend)
+2. ✅ Circuit Breaker (Resilience4j)
+3. ✅ Event-Driven (RabbitMQ)
+4. ✅ Database per Service
+5. ✅ OAuth2/OIDC (Azure AD)
+6. ✅ Microservicios independientes
+
+### ⏰ TIEMPO RESTANTE:
+
+**Hasta entrega (Martes 23:00):** ~2-3 horas
+**Actividades pendientes:**
+- Documentación visual (diagrama)
+- Screenshots
+- README.md actualizado
+- Practicar demo
+
+### 💡 RECOMENDACIONES PARA LA PRESENTACIÓN:
+
+1. **Empezar con arquitectura:** Mostrar diagrama completo del sistema
+2. **Demo en vivo:** Seguir flujo de Login → CRUD → Notificación
+3. **Destacar patrones:** Explicar Circuit Breaker y Event-Driven
+4. **Mostrar código clave:** SecurityConfig, Circuit Breaker config, RabbitMQ
+5. **Resaltar AWS:** Todo desplegado en cloud con Docker
+6. **Backup plan:** Si falla internet, tener screenshots y video grabado
 
 ---
+
+**✨ LOGRO PRINCIPAL:** Sistema full-stack cloud-native completamente funcional con OAuth2, microservicios, RabbitMQ y despliegue en AWS. Listo para presentación y evaluación.
+
+---
+
+## DETALLES TÉCNICOS DEL FRONTEND
+
+### Arquitectura Frontend:
+
+**Framework:** React 18 + Vite
+**Autenticación:** MSAL (Microsoft Authentication Library)
+**HTTP Client:** Axios con interceptors
+**Routing:** React Router DOM v6
+**Estilos:** Bootstrap 5 + CSS custom (tema gamer)
+**Fuentes:** Google Fonts (Orbitron, Rajdhani)
+
+### Estructura de Componentes:
+
+```
+frontend/src/
+├── components/
+│   └── Navbar.jsx              # Navegación + usuario + logout
+├── pages/
+│   ├── Login.jsx               # OAuth2 con Azure AD (loginRedirect)
+│   ├── Dashboard.jsx           # Página principal con cards
+│   ├── Products.jsx            # CRUD completo de productos
+│   ├── Audit.jsx               # Visualización de logs
+│   └── Notify.jsx              # Envío de notificaciones
+├── services/
+│   └── api.js                  # Cliente Axios + endpoints
+├── authConfig.js               # Config MSAL
+├── config.js                   # Backend base URL
+├── App.jsx                     # Routes + Auth protection
+├── main.jsx                    # Entry point + MsalProvider
+└── index.css                   # Tema gamer dark purple
+```
+
+### Flujo de Autenticación (OAuth2):
+
+1. Usuario accede a `http://localhost:5173`
+2. `App.jsx` verifica con `useIsAuthenticated()`
+3. Si no está autenticado → muestra `Login.jsx`
+4. Usuario click en "INICIAR SESIÓN CON MICROSOFT"
+5. `instance.loginRedirect(loginRequest)` redirige a Microsoft
+6. Usuario ingresa credenciales en Microsoft
+7. Microsoft valida y redirige de vuelta con token
+8. MSAL procesa el token automáticamente
+9. `useIsAuthenticated()` retorna true
+10. Usuario ve el Dashboard
+
+### Protección de Rutas:
+
+```javascript
+// App.jsx
+const isAuthenticated = useIsAuthenticated();
+
+if (!isAuthenticated) {
+  return <Login />;  // Fuerza login
+}
+
+return (
+  <Router>
+    <Navbar />
+    <Routes>
+      <Route path="/" element={<Dashboard />} />
+      <Route path="/products" element={<Products />} />
+      {/* ... más rutas */}
+    </Routes>
+  </Router>
+);
+```
+
+### Configuración MSAL:
+
+```javascript
+// authConfig.js
+export const msalConfig = {
+  auth: {
+    clientId: "faba8741-ba0d-440c-b061-f1aa893eb957",
+    authority: "https://login.microsoftonline.com/47c2bee0-5950-430f-9276-bfc083e3d1da",
+    redirectUri: "http://localhost:5173"
+  }
+};
+
+export const loginRequest = {
+  scopes: ["User.Read"]
+};
+```
+
+### API Client (Axios):
+
+```javascript
+// services/api.js
+const API_BASE_URL = 'http://54.242.196.191:8081';
+
+export const api = {
+  // Products
+  getProducts: () => axios.get(`${API_BASE_URL}/api/products`),
+  createProduct: (data) => axios.post(`${API_BASE_URL}/api/products`, data),
+  
+  // Audit
+  getAuditEvents: () => axios.get(`${API_BASE_URL}/api/audit`),
+  
+  // Notifications
+  sendNotification: (data) => axios.post(`${API_BASE_URL}/api/notify`, data),
+  
+  // Clientes
+  getClientes: () => axios.get(`${API_BASE_URL}/api/data/clientes`),
+  createCliente: (data) => axios.post(`${API_BASE_URL}/api/data/clientes`, data)
+};
+```
+
+### Tema Gamer - Paleta de Colores:
+
+```css
+/* index.css */
+--primary-purple: #7c3aed
+--dark-bg: #0a0a0f
+--card-bg: #13131a
+--border-glow: rgba(124, 58, 237, 0.3)
+--text-light: #ffffff
+--text-muted: #a0a0b0
+
+/* Efectos especiales */
+- Box shadows con glow purple
+- Gradientes lineales purple/black
+- Animaciones float y fadeIn
+- Borders con transparencia
+- Hover effects suaves
+```
+
+### Dependencias NPM Instaladas:
+
+```json
+{
+  "dependencies": {
+    "@azure/msal-browser": "^3.29.0",
+    "@azure/msal-react": "^2.1.3",
+    "axios": "^1.7.9",
+    "bootstrap": "^5.3.3",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^7.1.3"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^6.0.5"
+  }
+}
+```
+
+### Comandos de Desarrollo:
+
+```bash
+# Instalar dependencias
+npm install
+
+# Desarrollo local
+npm run dev
+
+# Build para producción
+npm run build
+
+# Preview del build
+npm run preview
+```
+
+### Características Implementadas:
+
+✅ **Login/Logout:** Completo con Azure AD
+✅ **Dashboard:** Cards con métricas y navegación rápida
+✅ **CRUD Productos:**
+   - Listar productos con card visual
+   - Crear producto con formulario
+   - Validaciones de campos
+   - Feedback visual (success/error)
+✅ **Auditoría:**
+   - Tabla de eventos del sistema
+   - Badges por tipo de acción
+   - Timestamps formateados
+✅ **Notificaciones:**
+   - Formulario de envío de email
+   - Integración con RabbitMQ (a través de BFF)
+   - Confirmación visual
+✅ **Navbar:**
+   - Logo y título
+   - Links de navegación
+   - Nombre de usuario autenticado
+   - Botón de logout
+✅ **Responsive:** Funciona en desktop y mobile
+✅ **Loading states:** Spinners mientras carga data
+✅ **Error handling:** Mensajes amigables en caso de error
+
+### Integración Backend-Frontend:
+
+```
+Usuario Frontend (localhost:5173)
+    ↓
+    | HTTP Request (Axios)
+    ↓
+BFF en AWS (54.242.196.191:8081)
+    ↓
+    | Internal network
+    ↓
+Microservicios (Orders, Catalog, Audit, etc.)
+    ↓
+    | Database queries
+    ↓
+PostgreSQL / MongoDB
+```
+
+**CORS:** Configurado en BFF para permitir `http://localhost:5173`
+
+### Ventajas del Diseño Actual:
+
+1. **Seguridad:** OAuth2 real, no mock
+2. **Escalabilidad:** BFF permite agregar más microservicios sin cambiar frontend
+3. **UX:** Loading states y feedback inmediato
+4. **Mantenibilidad:** Código limpio y componentizado
+5. **Estética:** Tema gamer profesional y moderno
+
+---
+
+**ÚLTIMA ACTUALIZACIÓN:** 21 de Septiembre 2026 - 21:00hrs
+**ESTADO FINAL:** 🟢 PROYECTO 100% COMPLETADO Y FUNCIONAL
 
 FIN DEL INFORME
