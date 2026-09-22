@@ -17,12 +17,12 @@ public class ClienteController {
     public ClienteResponse obtenerCliente() {
         log.info("Solicitud recibida en /clientes");
         
-        // Datos hardcodeados según Tutorial Parte 2
+        // Cliente de ejemplo del sistema Pedidos360
         ClienteResponse cliente = new ClienteResponse(
-            "12345678-9",
-            "Wacoldo",
-            "Soto",
-            "Calle Falsa 123",
+            "19876543-2",
+            "María",
+            "González",
+            "Av. Libertador Bernardo O'Higgins 1234",
             "Santiago"
         );
         

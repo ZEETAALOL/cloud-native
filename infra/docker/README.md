@@ -37,7 +37,7 @@ docker-compose logs -f orders
 ### 3. Verificar que Funcionan
 
 ```bash
-# Orders (debe devolver datos de Wacoldo)
+# Orders - debe devolver información de cliente
 curl http://localhost:8081/clientes
 
 # BFF Health

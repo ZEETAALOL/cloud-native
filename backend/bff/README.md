@@ -89,10 +89,10 @@ Authorization: Bearer <JWT-token>
 **Respuesta exitosa (200):**
 ```json
 {
-  "rut": "12345678-9",
-  "nombre": "Wacoldo",
-  "apellido": "Soto",
-  "direccion": "Calle Falsa 123",
+  "rut": "19876543-2",
+  "nombre": "María",
+  "apellido": "González",
+  "direccion": "Av. Libertador Bernardo O'Higgins 1234",
   "comuna": "Santiago"
 }
 ```

@@ -1,98 +1,112 @@
-# 🚀 Pedidos360 - Plataforma Cloud-Native
+# 🚀 Pedidos360 - Sistema Cloud-Native de Gestión de Pedidos
 
-Sistema de microservicios enterprise para gestión de pedidos con arquitectura cloud-native completa.
+Plataforma de microservicios enterprise desarrollada con arquitectura cloud-native completa, desplegada en AWS EC2.
 
-**Stack:** Spring Boot • Keycloak • Traefik • RabbitMQ • Docker • PostgreSQL • MongoDB
+**Stack:** Spring Boot • Azure AD • RabbitMQ • Docker • PostgreSQL • MongoDB • React
 
 ---
 
 ## 📋 Características Principales
 
 ✅ **6 Microservicios** - BFF, Orders, Catalog, Report, Notify, Audit  
-✅ **OAuth2/OIDC** - Autenticación centralizada con Keycloak  
-✅ **API Gateway** - Traefik como punto de entrada único  
+✅ **OAuth2 con Azure AD** - Autenticación Microsoft (Entra ID)  
+✅ **Frontend React** - Interfaz moderna con tema gamer dark purple  
 ✅ **Mensajería Asíncrona** - RabbitMQ para comunicación entre servicios  
 ✅ **Circuit Breaker** - Resilience4j para tolerancia a fallos  
-✅ **Contenedorización** - Docker Compose con 10+ servicios  
+✅ **Contenedorización** - Docker Compose con todos los servicios  
 ✅ **Bases de datos** - PostgreSQL + MongoDB  
+✅ **Despliegue Cloud** - AWS EC2 t3.medium
 
 ---
 
-## 🏗️ Arquitectura
+## 🏗️ Arquitectura del Sistema
 
 ```
-Internet → Traefik (API Gateway :80)
+Usuario → Frontend React (localhost:5173)
+              ↓ OAuth2
+         Azure AD (Microsoft Entra ID)
+              ↓ JWT Token
+            BFF (:8081) ← JWT Validation + Circuit Breaker
               ↓
-          Keycloak (:8080) ← OAuth2/OIDC
-              ↓
-            BFF (:8081) ← JWT Validation
-              ↓
-    ┌─────────┼─────────┬─────────┐
-    ↓         ↓         ↓         ↓
- Orders   Catalog   Report    Audit
-  :8082    :8084     :8085     :8083
-    ↓         ↓         ↓         ↓
-PostgreSQL MongoDB  PostgreSQL PostgreSQL
+    ┌─────────┼─────────┬─────────┬─────────┐
+    ↓         ↓         ↓         ↓         ↓
+ Orders   Catalog   Report    Audit     Notify
+  :8082    :8084     :8085     :8083      :8086
+    ↓         ↓         ↓         ↓         ↓
+PostgreSQL MongoDB PostgreSQL PostgreSQL  RabbitMQ
     
-    BFF → RabbitMQ → Notify (:8086)
+    BFF → RabbitMQ → Notify (Email/Notificaciones)
 ```
+
+**Ubicación:**
+- Backend: AWS EC2 (54.242.196.191)
+- Frontend: Local (localhost:5173)
+- Autenticación: Azure AD (cloud)
 
 ---
 
 ## 🚀 Quick Start
 
-### Prerequisites
-- Docker & Docker Compose
-- Ports disponibles: 80, 5432, 5672, 8080-8086, 15672, 27017
+### Opción 1: Sistema Completo en AWS (Producción)
 
-### Levantar todo el sistema
+El backend ya está desplegado y funcionando en AWS EC2.
+
+**URLs de acceso:**
+```
+Backend API (BFF):        http://54.242.196.191:8081
+RabbitMQ Management:      http://54.242.196.191:15672 (admin/admin123)
+Orders Service:           http://54.242.196.191:8082
+Catalog Service:          http://54.242.196.191:8084
+Report Service:           http://54.242.196.191:8085
+Audit Service:            http://54.242.196.191:8083
+Notify Service:           http://54.242.196.191:8086
+```
+
+**Frontend local:**
+```bash
+cd frontend
+npm install
+npm run dev
+# Abre http://localhost:5173
+```
+
+### Opción 2: Local Development
 
 ```bash
 cd infra/docker
-docker compose up -d
+docker compose -f docker-compose.full.yml up -d
 ```
-
-### Verificar servicios
-
-```bash
-docker compose ps
-docker compose logs -f
-```
-
-### Acceder a los servicios
-
-| Servicio | URL | Credenciales |
-|----------|-----|--------------|
-| **Traefik Dashboard** | http://localhost/dashboard/ | - |
-| **Keycloak** | http://localhost:8080 | admin / admin123 |
-| **RabbitMQ Admin** | http://localhost:15672 | admin / admin123 |
-| **BFF API** | http://localhost/api | Requiere token |
 
 ---
 
-## 🔐 Configuración Keycloak
+## 🔐 Autenticación OAuth2 con Azure AD
 
-### Crear Realm y Clients
+El sistema utiliza **Microsoft Entra ID (Azure AD)** para autenticación OAuth2.
 
-1. Login en Keycloak (admin/admin123)
-2. Crear realm: `pedidos360`
-3. Crear client: `pedidos360-api`
-4. Crear usuario de prueba
+### Configuración Azure AD
 
-**Obtener token:**
+**Tenant ID:** `47c2bee0-5950-430f-9276-bfc083e3d1da`  
+**Client ID:** `faba8741-ba0d-440c-b061-f1aa893eb957`  
+**Redirect URI:** `http://localhost:5173` (Frontend React)
+
+### Flujo de Login
+
+1. Usuario accede a `http://localhost:5173`
+2. Click en "INICIAR SESIÓN CON MICROSOFT"
+3. Redirige a Microsoft para autenticación
+4. Usuario ingresa credenciales de Microsoft
+5. Microsoft valida y redirige de vuelta con token
+6. MSAL procesa el token
+7. Usuario accede al Dashboard
+
+### Acceder a la API
+
+El frontend ya maneja automáticamente los tokens. Para llamadas manuales:
+
 ```bash
-curl -X POST http://localhost:8080/realms/pedidos360/protocol/openid-connect/token \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "grant_type=password" \
-  -d "client_id=pedidos360-api" \
-  -d "username=testuser" \
-  -d "password=test123"
-```
-
-**Llamar API:**
-```bash
-curl http://localhost/api/products \
-  -H "Authorization: Bearer <TOKEN>"
+# Los tokens se obtienen automáticamente via MSAL en el frontend
+# Para testing directo del backend sin frontend, necesitarías obtener
+# un token válido de Azure AD manualmente
 ```
 
 ---
@@ -101,147 +115,308 @@ curl http://localhost/api/products \
 
 ### BFF (Backend for Frontend)
 - **Puerto:** 8081
-- **Función:** API Gateway interno, orquestación, Circuit Breaker
-- **Tech:** Spring Boot 4.1.1, Resilience4j
+- **Función:** API Gateway, validación JWT, orquestación, Circuit Breaker
+- **Tech:** Spring Boot 4.1.1, Resilience4j, OAuth2 Resource Server
+- **Endpoints:** `/api/products`, `/api/audit`, `/api/notify`, `/api/data/clientes`
 
-### Orders (Gestión de Pedidos)
+### Orders (Gestión de Pedidos y Clientes)
 - **Puerto:** 8082
-- **Función:** CRUD pedidos, estados, validaciones
+- **Función:** Gestión de pedidos y clientes
 - **BD:** PostgreSQL
+- **Endpoints:** `/clientes`, `/pedidos`
 
-### Catalog (Productos)
+### Catalog (Catálogo de Productos)
 - **Puerto:** 8084
-- **Función:** CRUD productos, stock
+- **Función:** CRUD de productos, gestión de inventario
 - **BD:** MongoDB
+- **Endpoints:** `/products`
 
-### Report (Reportes)
+### Report (Reportes y Analytics)
 - **Puerto:** 8085
-- **Función:** KPIs, analytics, reportes
+- **Función:** Generación de reportes, KPIs, datos analíticos
 - **BD:** PostgreSQL
+- **Endpoints:** `/reports/data`
 
 ### Notify (Notificaciones)
 - **Puerto:** 8086
-- **Función:** Consumer RabbitMQ, envío de notificaciones
+- **Función:** Consumer RabbitMQ, envío de emails y notificaciones
 - **Mensajería:** RabbitMQ
+- **Protocolo:** AMQP
 
 ### Audit (Auditoría)
 - **Puerto:** 8083
-- **Función:** Log de eventos de negocio
+- **Función:** Registro y consulta de eventos de auditoría del sistema
 - **BD:** PostgreSQL
+- **Endpoints:** `/audit`
 
 ---
 
 ## 🛠️ Stack Tecnológico
 
+### Backend
 | Componente | Tecnología | Versión |
 |------------|-----------|---------|
-| **Backend** | Spring Boot | 4.1.1 / 3.4.1 |
-| **Lenguaje** | Java | 17 |
-| **Build** | Maven | 3.9 |
-| **Auth** | Keycloak | 26.0 |
-| **Gateway** | Traefik | v3.2 |
-| **Messaging** | RabbitMQ | 4.0-management |
-| **BD SQL** | PostgreSQL | 17-alpine |
-| **BD NoSQL** | MongoDB | 8.0 |
+| **Framework** | Spring Boot | 4.1.1 / 3.4.1 |
+| **Lenguaje** | Java | 17 / 25 |
+| **Build Tool** | Maven | 3.9 |
+| **Auth** | Azure AD (Entra ID) | OAuth2/OIDC |
 | **Circuit Breaker** | Resilience4j | 2.2.0 |
-| **Containers** | Docker Compose | v2 |
+| **Messaging** | RabbitMQ | 3.13-management |
+| **BD SQL** | PostgreSQL | 15 |
+| **BD NoSQL** | MongoDB | 7 |
+| **Containers** | Docker | Latest |
+
+### Frontend
+| Componente | Tecnología | Versión |
+|------------|-----------|---------|
+| **Framework** | React | 18 |
+| **Build Tool** | Vite | 6 |
+| **Auth Library** | MSAL | 3.x |
+| **HTTP Client** | Axios | 1.7 |
+| **Router** | React Router DOM | 7 |
+| **Styling** | Bootstrap 5 + Custom CSS | 5.3 |
+| **Fonts** | Orbitron + Rajdhani | Google Fonts |
+
+### Infraestructura
+| Componente | Tecnología | Detalles |
+|------------|-----------|----------|
+| **Cloud Provider** | AWS EC2 | t3.medium (2 vCPU, 4GB RAM) |
+| **OS** | Ubuntu Server | 24.04 LTS |
+| **Orchestration** | Docker Compose | v2 |
+| **Networking** | AWS Security Groups | Puertos 22, 8081-8086, 15672 |
 
 ---
 
 ## 📊 Patrones Cloud-Native Implementados
 
-✅ **API Gateway Pattern** - Traefik como punto de entrada  
-✅ **Circuit Breaker Pattern** - Resilience4j con fallbacks  
-✅ **Service Discovery** - Docker DNS interno  
-✅ **Externalized Configuration** - Variables de entorno  
-✅ **Health Check Pattern** - Actuator endpoints  
-✅ **Async Messaging** - RabbitMQ pub/sub  
-✅ **Database per Service** - Cada microservicio su BD  
-✅ **Centralized Authentication** - Keycloak OAuth2  
+✅ **BFF Pattern** - Backend for Frontend como capa de agregación  
+✅ **Circuit Breaker Pattern** - Resilience4j con fallbacks automáticos  
+✅ **Event-Driven Architecture** - RabbitMQ para mensajería asíncrona  
+✅ **Database per Service** - Cada microservicio con su base de datos independiente  
+✅ **Externalized Configuration** - Variables de entorno y archivos YAML  
+✅ **Health Check Pattern** - Endpoints de salud en todos los servicios  
+✅ **OAuth2/OIDC Authentication** - Azure AD para autenticación centralizada  
+✅ **API Composition** - BFF agrega respuestas de múltiples servicios  
+✅ **CORS Management** - Configuración centralizada en BFF  
 
 ---
 
-## 📚 Documentación Adicional
+## 📚 Documentación
 
-- **[infra/docker/README.md](infra/docker/README.md)** - Docker Compose setup
-- **[infra/aws/INSTRUCCIONES_AWS.md](infra/aws/INSTRUCCIONES_AWS.md)** - Deploy a AWS
-- **[backend/bff/CIRCUIT_BREAKER.md](backend/bff/CIRCUIT_BREAKER.md)** - Circuit Breaker guide
-- **[docs/](docs/)** - Documentación técnica completa
-
----
-
-## 🧪 Testing
-
-### Health checks
-```bash
-curl http://localhost/actuator/health
-```
-
-### Probar Circuit Breaker
-```bash
-# Detener servicio
-docker stop pedidos360-catalog
-
-# Llamar API (debe retornar fallback)
-curl http://localhost/api/products -H "Authorization: Bearer <TOKEN>"
-
-# Verificar logs
-docker logs pedidos360-bff --tail 50
-```
-
-### Probar RabbitMQ
-```bash
-# Enviar mensaje
-curl -X POST http://localhost/api/messaging/send \
-  -H "Authorization: Bearer <TOKEN>" \
-  -H "Content-Type: application/json" \
-  -d '{"message": "Test notification"}'
-
-# Ver logs del consumer
-docker logs pedidos360-notify --tail 50
-```
+- **[INFORME_ESTADO_PROYECTO.md](INFORME_ESTADO_PROYECTO.md)** - Estado completo del proyecto
+- **[backend/bff/CIRCUIT_BREAKER.md](backend/bff/CIRCUIT_BREAKER.md)** - Guía de Circuit Breaker
+- **[backend/bff/README.md](backend/bff/README.md)** - Documentación del BFF
+- **[frontend/README.md](frontend/README.md)** - Setup del frontend React
 
 ---
 
-## 🚀 Deploy a AWS
+## 🧪 Testing y Demostración
 
-Ver guía completa: [infra/aws/INSTRUCCIONES_AWS.md](infra/aws/INSTRUCCIONES_AWS.md)
+### Frontend - Flujo Completo
 
-**Quick setup:**
+1. Acceder a `http://localhost:5173`
+2. Login con Microsoft (Azure AD)
+3. Ver Dashboard con métricas
+4. Crear un producto en Catálogo
+5. Ver eventos en Auditoría
+6. Enviar notificación por email
+7. Logout
+
+### Backend - Health Checks
+
 ```bash
-# En EC2
-wget https://raw.githubusercontent.com/TU-USUARIO/proyecto_cloudnative_ev1/main/infra/aws/setup-ec2.sh
-chmod +x setup-ec2.sh
-./setup-ec2.sh
+# Verificar todos los servicios
+curl http://54.242.196.191:8081/actuator/health
+curl http://54.242.196.191:8082/actuator/health
+curl http://54.242.196.191:8083/actuator/health
+curl http://54.242.196.191:8084/actuator/health
+curl http://54.242.196.191:8085/actuator/health
+curl http://54.242.196.191:8086/actuator/health
+```
+
+### Circuit Breaker - Prueba de Tolerancia a Fallos
+
+```bash
+# 1. Detener servicio de Catalog
+ssh ubuntu@54.242.196.191
+cd ~/cloud-native/infra/docker
+sudo docker-compose -f docker-compose.full.yml stop catalog
+
+# 2. Llamar API desde frontend
+# La app debe mostrar mensaje de fallback sin fallar
+
+# 3. Ver logs del Circuit Breaker
+sudo docker-compose -f docker-compose.full.yml logs bff | grep -i circuit
+
+# 4. Reiniciar servicio
+sudo docker-compose -f docker-compose.full.yml start catalog
+```
+
+### RabbitMQ - Mensajería Asíncrona
+
+```bash
+# 1. Acceder a RabbitMQ Management
+# http://54.242.196.191:15672 (admin/admin123)
+
+# 2. Enviar notificación desde frontend
+# Ver en la cola que el mensaje se procesa
+
+# 3. Ver logs del servicio Notify
+sudo docker-compose -f docker-compose.full.yml logs notify --tail=50
+```
+
+---
+
+## 🚀 Despliegue en AWS
+
+### Infraestructura Actual
+
+**Instancia EC2:**
+- Tipo: t3.medium (2 vCPU, 4GB RAM)
+- OS: Ubuntu Server 24.04 LTS
+- IP Pública: 54.242.196.191 ⚠️ *Cambia al reiniciar*
+- Región: us-east-1
+
+**Security Group:**
+- SSH: 22
+- Backend Services: 8081-8086
+- RabbitMQ Management: 15672
+
+### Comandos Útiles AWS
+
+```bash
+# Conectar por SSH
+ssh -i tu-clave.pem ubuntu@54.242.196.191
+
+# Ver estado de servicios
+cd ~/cloud-native/infra/docker
+sudo docker-compose -f docker-compose.full.yml ps
+
+# Ver logs
+sudo docker-compose -f docker-compose.full.yml logs -f [servicio]
+
+# Reiniciar servicios
+sudo docker-compose -f docker-compose.full.yml restart
+
+# Reiniciar un servicio específico
+sudo docker-compose -f docker-compose.full.yml restart bff
+```
+
+### Actualizar Código en AWS
+
+```bash
+# En AWS EC2
+cd ~/cloud-native
+git pull origin main
+sudo docker-compose -f infra/docker/docker-compose.full.yml up -d --build
 ```
 
 ---
 
 ## 🐛 Troubleshooting
 
-### Servicios no levantan
+### Frontend no conecta al backend
+
 ```bash
-docker compose logs <servicio>
-docker compose restart <servicio>
+# Verificar IP del backend en frontend/src/config.js
+# Debe ser: http://54.242.196.191:8081
 ```
 
-### Puerto ocupado
+### Error de CORS
+
 ```bash
-netstat -ano | findstr :<PUERTO>
+# Verificar configuración CORS en BFF
+# El BFF debe permitir origen: http://localhost:5173
 ```
 
-### Limpiar y reiniciar
+### Login de Azure AD falla
+
 ```bash
-docker compose down -v
-docker compose up -d
+# Verificar Redirect URI en Azure Portal
+# Debe estar configurado: http://localhost:5173
+# Tipo: Single-page application (SPA)
+# Tokens: Access tokens + ID tokens habilitados
+```
+
+### Servicios en AWS no responden
+
+```bash
+# Conectar por SSH
+ssh -i tu-clave.pem ubuntu@54.242.196.191
+
+# Ver estado
+cd ~/cloud-native/infra/docker
+sudo docker-compose -f docker-compose.full.yml ps
+
+# Ver logs
+sudo docker-compose -f docker-compose.full.yml logs [servicio] --tail=100
+
+# Reiniciar todo
+sudo docker-compose -f docker-compose.full.yml restart
+```
+
+### Puerto ocupado localmente
+
+```powershell
+# Ver qué proceso usa el puerto
+netstat -ano | findstr :5173
+
+# Matar proceso
+taskkill /PID <PID> /F
 ```
 
 ---
 
-## 📄 Licencia
+## 📊 Estructura del Proyecto
 
-Proyecto académico - DuocUC 2026  
-Desarrollo Cloud Native I
+```
+proyecto_cloudnative_ev1/
+├── backend/                    # Microservicios Java Spring Boot
+│   ├── audit/                 # ✅ Servicio de auditoría
+│   ├── bff/                   # ✅ Backend for Frontend
+│   ├── catalog/               # ✅ Catálogo de productos
+│   ├── notify/                # ✅ Notificaciones
+│   ├── orders/                # ✅ Pedidos y clientes
+│   └── report/                # ✅ Reportes
+├── frontend/                   # ✅ React + Vite + OAuth2
+│   ├── src/
+│   │   ├── components/        # Navbar
+│   │   ├── pages/             # Login, Dashboard, Products, etc.
+│   │   ├── services/          # API client (Axios)
+│   │   ├── authConfig.js      # MSAL config
+│   │   └── config.js          # Backend URL
+│   └── package.json
+├── infra/
+│   ├── aws/                   # Scripts y docs de AWS
+│   └── docker/                # Docker Compose
+│       └── docker-compose.full.yml  # ✅ En uso en AWS
+├── INFORME_ESTADO_PROYECTO.md # 📄 Estado completo
+└── README.md                  # 📄 Este archivo
+```
 
-**Autor:** Bastian Martinez  
+---
+
+## 📄 Licencia y Créditos
+
+**Proyecto Académico** - DuocUC 2026  
+**Asignatura:** Desarrollo Cloud Native I  
+**Autor:** Benjamín Martínez  
+**Email:** bae.martinez@duocuc.cl  
 **Fecha:** Septiembre 2026
+
+### Características Destacadas
+
+- ✅ **100% Funcional** - Sistema completo desplegado y operacional
+- ✅ **OAuth2 Real** - Autenticación con Azure AD (no mock)
+- ✅ **Cloud Deployment** - AWS EC2 en producción
+- ✅ **Patrones Enterprise** - Circuit Breaker, BFF, Event-Driven
+- ✅ **Frontend Moderno** - React 18 con tema gamer profesional
+- ✅ **Arquitectura Escalable** - 6 microservicios independientes
+
+### Repositorio
+
+**GitHub:** https://github.com/ZEETAALOL/cloud-native
+
+---
+
+**⚠️ Nota Importante:** La IP pública de AWS (54.242.196.191) cambia al reiniciar la instancia EC2. Actualizar `frontend/src/config.js` con la nueva IP cuando sea necesario.

@@ -1,6 +1,6 @@
 # Orders Service - Pedidos360
 
-Microservicio de órdenes que retorna datos de clientes (hardcodeado para Tutorial Parte 2).
+Microservicio de gestión de pedidos y clientes del sistema Pedidos360.
 
 ## 🚀 Inicio Rápido
 
@@ -38,17 +38,17 @@ src/main/
 ## 🔌 Endpoints
 
 ### GET /clientes
-Retorna datos hardcodeados del cliente Wacoldo Soto.
+Retorna información del cliente registrado en el sistema.
 
 **Sin autenticación requerida** (solo llamado desde BFF).
 
 **Respuesta (200):**
 ```json
 {
-  "rut": "12345678-9",
-  "nombre": "Wacoldo",
-  "apellido": "Soto",
-  "direccion": "Calle Falsa 123",
+  "rut": "19876543-2",
+  "nombre": "María",
+  "apellido": "González",
+  "direccion": "Av. Libertador Bernardo O'Higgins 1234",
   "comuna": "Santiago"
 }
 ```
@@ -89,7 +89,7 @@ mvn spring-boot:run
 
 # Deberías ver:
 # INFO: Solicitud recibida en /clientes
-# INFO: Retornando cliente: Wacoldo Soto
+# INFO: Retornando cliente: María González
 ```
 
 ## 🚀 Futuras Mejoras
