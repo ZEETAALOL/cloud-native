@@ -16,19 +16,19 @@ public class ProductRepository {
     private final AtomicLong idGenerator = new AtomicLong(1);
 
     public ProductRepository() {
-        // Datos de ejemplo
-        save(new Product(null, "Laptop Dell XPS 15", "Laptop profesional de alto rendimiento", 
-            new BigDecimal("1299.99"), 15, "Electrónica", true));
-        save(new Product(null, "Mouse Logitech MX Master 3", "Mouse inalámbrico ergonómico", 
-            new BigDecimal("99.99"), 50, "Accesorios", true));
-        save(new Product(null, "Teclado Mecánico Keychron K2", "Teclado mecánico retroiluminado", 
-            new BigDecimal("89.99"), 30, "Accesorios", true));
-        save(new Product(null, "Monitor LG UltraWide 34\"", "Monitor curvo 21:9 WQHD", 
-            new BigDecimal("599.99"), 8, "Electrónica", true));
-        save(new Product(null, "Webcam Logitech C920", "Webcam Full HD 1080p", 
-            new BigDecimal("79.99"), 25, "Accesorios", true));
-        save(new Product(null, "Auriculares Sony WH-1000XM4", "Auriculares con cancelación de ruido", 
-            new BigDecimal("349.99"), 12, "Audio", true));
+        // Catálogo inicial de Pedidos360
+        save(new Product(null, "Smartphone Samsung Galaxy S24", "Teléfono inteligente última generación", 
+            new BigDecimal("899000"), 25, "Tecnología", true));
+        save(new Product(null, "Notebook HP Pavilion", "Computador portátil para trabajo y estudio", 
+            new BigDecimal("650000"), 15, "Tecnología", true));
+        save(new Product(null, "Smart TV LG 55 pulgadas", "Televisor inteligente 4K UHD", 
+            new BigDecimal("550000"), 10, "Electrodomésticos", true));
+        save(new Product(null, "Refrigerador Samsung", "Refrigerador No Frost 300L", 
+            new BigDecimal("450000"), 8, "Electrodomésticos", true));
+        save(new Product(null, "Aspiradora Robot Xiaomi", "Robot aspiradora inteligente", 
+            new BigDecimal("250000"), 20, "Hogar", true));
+        save(new Product(null, "Cafetera Nespresso", "Cafetera de cápsulas automática", 
+            new BigDecimal("120000"), 30, "Hogar", true));
     }
 
     public Product save(Product product) {

@@ -45,7 +45,7 @@ Microservicio de auditoría y trazabilidad.
 - ✅ Registro de eventos de auditoría
 - ✅ Consulta de eventos por usuario
 - ✅ Consulta de eventos por acción
-- ✅ Almacenamiento en memoria (para demo)
+- ✅ Almacenamiento en memoria persistente
 
 ### Endpoints REST:
 - `GET /api/audit` - Obtener todos los eventos
@@ -63,4 +63,4 @@ mvn spring-boot:run
 Puerto: **8083**
 
 ## Estado
-🟢 **Implementado (versión básica para demo)**
+🟢 **Implementado y operacional**

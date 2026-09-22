@@ -16,15 +16,15 @@ public class AuditRepository {
     private final AtomicLong idGenerator = new AtomicLong(1);
 
     public AuditRepository() {
-        // Datos de ejemplo
-        save(new AuditEvent(null, "user1", "LOGIN", "Usuario", "Usuario inició sesión", 
-            LocalDateTime.now().minusHours(2), "192.168.1.100"));
-        save(new AuditEvent(null, "user2", "CREATE_ORDER", "Pedido", "Creó pedido #1234", 
-            LocalDateTime.now().minusHours(1), "192.168.1.101"));
-        save(new AuditEvent(null, "user1", "UPDATE_PROFILE", "Perfil", "Actualizó información personal", 
-            LocalDateTime.now().minusMinutes(30), "192.168.1.100"));
-        save(new AuditEvent(null, "admin", "DELETE_PRODUCT", "Producto", "Eliminó producto #567", 
-            LocalDateTime.now().minusMinutes(15), "192.168.1.50"));
+        // Eventos iniciales del sistema Pedidos360
+        save(new AuditEvent(null, "sistema", "INICIO_SISTEMA", "Sistema", "Sistema Pedidos360 iniciado", 
+            LocalDateTime.now().minusHours(2), "10.0.0.1"));
+        save(new AuditEvent(null, "admin", "CONFIGURACION", "Sistema", "Configuración inicial completada", 
+            LocalDateTime.now().minusHours(1), "10.0.0.1"));
+        save(new AuditEvent(null, "bff", "HEALTH_CHECK", "Monitoreo", "Verificación de servicios", 
+            LocalDateTime.now().minusMinutes(30), "10.0.0.2"));
+        save(new AuditEvent(null, "catalog", "SYNC_PRODUCTOS", "Catálogo", "Sincronización de productos completada", 
+            LocalDateTime.now().minusMinutes(15), "10.0.0.3"));
     }
 
     public AuditEvent save(AuditEvent event) {

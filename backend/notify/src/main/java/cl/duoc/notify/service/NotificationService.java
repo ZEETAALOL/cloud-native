@@ -18,13 +18,13 @@ public class NotificationService {
     private final ConcurrentHashMap<String, Notification> notifications = new ConcurrentHashMap<>();
 
     public NotificationService() {
-        // Datos de ejemplo
+        // Notificaciones iniciales del sistema
         Notification n1 = new Notification(
             UUID.randomUUID().toString(),
-            "user@example.com",
+            "pedidos360@duocuc.cl",
             "EMAIL",
-            "Pedido Confirmado",
-            "Tu pedido #1234 ha sido confirmado",
+            "Sistema Iniciado",
+            "Pedidos360 ha iniciado correctamente en AWS EC2",
             "SENT",
             LocalDateTime.now().minusHours(2)
         );
@@ -32,10 +32,10 @@ public class NotificationService {
 
         Notification n2 = new Notification(
             UUID.randomUUID().toString(),
-            "+56912345678",
-            "SMS",
-            "Código de verificación",
-            "Tu código es: 123456",
+            "admin@pedidos360.cl",
+            "EMAIL",
+            "Servicios Activos",
+            "Todos los microservicios están operacionales",
             "SENT",
             LocalDateTime.now().minusMinutes(30)
         );
@@ -43,10 +43,10 @@ public class NotificationService {
 
         Notification n3 = new Notification(
             UUID.randomUUID().toString(),
-            "admin@example.com",
+            "soporte@pedidos360.cl",
             "EMAIL",
-            "Alerta de stock bajo",
-            "El producto XYZ tiene stock bajo",
+            "Base de Datos Sincronizada",
+            "PostgreSQL y MongoDB sincronizados correctamente",
             "SENT",
             LocalDateTime.now().minusMinutes(5)
         );

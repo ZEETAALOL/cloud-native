@@ -34,7 +34,7 @@ Microservicio de notificaciones asíncronas.
 - ✅ Registro en logs de notificaciones enviadas
 - ✅ Historial de notificaciones en memoria
 - ✅ Consulta por destinatario y canal
-- ✅ Datos de ejemplo precargados
+- ✅ Notificaciones del sistema Pedidos360
 
 ### Endpoints REST:
 - `GET /api/notifications` - Obtener todas las notificaciones
@@ -52,4 +52,4 @@ mvn spring-boot:run
 Puerto: **8086**
 
 ## Estado
-🟢 **Implementado (versión básica para demo)**
+🟢 **Implementado y operacional**

@@ -56,4 +56,4 @@ mvn spring-boot:run
 Puerto: **8085**
 
 ## Estado
-🟢 **Implementado (versión básica para demo)**
+🟢 **Implementado y operacional**
