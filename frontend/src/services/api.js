@@ -9,6 +9,39 @@ const api = axios.create({
   },
 });
 
+// Interceptor para agregar el token JWT a todas las requests
+api.interceptors.request.use(
+  async (config) => {
+    try {
+      // Obtener el token de MSAL desde sessionStorage
+      const accounts = JSON.parse(sessionStorage.getItem('msal.account.keys') || '[]');
+      
+      if (accounts.length > 0) {
+        // Buscar el token de acceso
+        const tokenKey = Object.keys(sessionStorage).find(key => 
+          key.includes('accesstoken') && key.includes(accounts[0])
+        );
+        
+        if (tokenKey) {
+          const tokenData = JSON.parse(sessionStorage.getItem(tokenKey));
+          const token = tokenData?.secret;
+          
+          if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error al obtener token:', error);
+    }
+    
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 // Servicios de la API
 export const apiService = {
   // Obtener productos
