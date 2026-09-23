@@ -1,5 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useIsAuthenticated } from '@azure/msal-react';
+import { useIsAuthenticated, useMsal } from '@azure/msal-react';
+import { useEffect } from 'react';
+import { setMsalInstance } from './services/api';
 import Navbar from './components/Navbar';
 import Dashboard from './pages/Dashboard';
 import Products from './pages/Products';
@@ -10,6 +12,12 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 
 function App() {
   const isAuthenticated = useIsAuthenticated();
+  const { instance } = useMsal();
+  
+  // Configurar la instancia de MSAL en el servicio API
+  useEffect(() => {
+    setMsalInstance(instance);
+  }, [instance]);
   
   // MODO DEMO: Deshabilitar autenticación temporalmente para AWS
   const DEMO_MODE = window.location.hostname !== 'localhost';

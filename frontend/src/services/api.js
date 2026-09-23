@@ -1,6 +1,14 @@
 import axios from 'axios';
 import { API_ENDPOINTS } from '../config';
 
+// Esta variable se inicializará desde el componente App
+let msalInstance = null;
+
+// Función para configurar la instancia de MSAL
+export const setMsalInstance = (instance) => {
+  msalInstance = instance;
+};
+
 // Configuración de axios
 const api = axios.create({
   timeout: 10000,
@@ -13,21 +21,19 @@ const api = axios.create({
 api.interceptors.request.use(
   async (config) => {
     try {
-      // Obtener el token de MSAL desde sessionStorage
-      const accounts = JSON.parse(sessionStorage.getItem('msal.account.keys') || '[]');
-      
-      if (accounts.length > 0) {
-        // Buscar el token de acceso
-        const tokenKey = Object.keys(sessionStorage).find(key => 
-          key.includes('accesstoken') && key.includes(accounts[0])
-        );
+      if (msalInstance) {
+        const accounts = msalInstance.getAllAccounts();
         
-        if (tokenKey) {
-          const tokenData = JSON.parse(sessionStorage.getItem(tokenKey));
-          const token = tokenData?.secret;
+        if (accounts.length > 0) {
+          // Intentar obtener el token silenciosamente
+          const response = await msalInstance.acquireTokenSilent({
+            scopes: ['openid', 'profile', 'User.Read'],
+            account: accounts[0],
+          });
           
-          if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
+          if (response.accessToken) {
+            config.headers.Authorization = `Bearer ${response.accessToken}`;
+            console.log('Token agregado a la request');
           }
         }
       }
