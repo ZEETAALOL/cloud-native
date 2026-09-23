@@ -22,6 +22,17 @@ export const apiService = {
     }
   },
 
+  // Crear producto
+  createProduct: async (productData) => {
+    try {
+      const response = await api.post(API_ENDPOINTS.products, productData);
+      return response.data;
+    } catch (error) {
+      console.error('Error al crear producto:', error);
+      throw error;
+    }
+  },
+
   // Obtener auditoría
   getAudit: async () => {
     try {
