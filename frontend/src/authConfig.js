@@ -5,8 +5,8 @@ export const msalConfig = {
   auth: {
     clientId: 'faba8741-ba0d-440c-b061-f1aa893eb957', // Application (client) ID
     authority: 'https://login.microsoftonline.com/47c2bee0-5950-430f-9276-bfc083e3d1da', // Tenant ID
-    redirectUri: 'http://localhost:5173', // Redirect URI configurado en Azure
-    postLogoutRedirectUri: 'http://localhost:5173',
+    redirectUri: window.location.origin, // Usa la URL actual automáticamente
+    postLogoutRedirectUri: window.location.origin,
   },
   cache: {
     cacheLocation: 'sessionStorage', // Guardar tokens en sessionStorage

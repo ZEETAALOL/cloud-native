@@ -1,5 +1,5 @@
 // Configuración de la API Backend
-export const API_BASE_URL = 'http://18.214.98.173:8081/api';
+export const API_BASE_URL = 'http://54.242.98.221:8080/api';
 
 export const API_ENDPOINTS = {
   products: `${API_BASE_URL}/products`,

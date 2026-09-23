@@ -22,7 +22,10 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
+    "crypto-browserify": "^3.12.1",
     "oxlint": "^1.81.0",
+    "stream-browserify": "^3.0.0",
+    "util": "^0.12.5",
     "vite": "^8.3.0"
   }
 }

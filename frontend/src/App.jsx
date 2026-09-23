@@ -10,13 +10,16 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 
 function App() {
   const isAuthenticated = useIsAuthenticated();
+  
+  // MODO DEMO: Deshabilitar autenticación temporalmente para AWS
+  const DEMO_MODE = window.location.hostname !== 'localhost';
 
-  // Si no está autenticado, mostrar solo la página de login
-  if (!isAuthenticated) {
+  // Si no está autenticado y NO está en modo demo, mostrar login
+  if (!isAuthenticated && !DEMO_MODE) {
     return <Login />;
   }
 
-  // Si está autenticado, mostrar la aplicación completa
+  // Si está autenticado o en modo demo, mostrar la aplicación completa
   return (
     <Router>
       <div className="App">
