@@ -33,7 +33,7 @@ public class SecurityConfig {
             .build();
     }
 
-    // Cadena 2: API - DEMO MODE: Sin validación JWT para presentación
+    // Cadena 2: API con OAuth2 JWT - Validación completa habilitada
     @Bean
     @Order(2)
     SecurityFilterChain apiSecurity(HttpSecurity http) throws Exception {
@@ -43,26 +43,26 @@ public class SecurityConfig {
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .anyRequest().permitAll())  // DEMO: Permitir todo para presentación
+                .anyRequest().authenticated())  // Requiere JWT válido
+            .oauth2ResourceServer(oauth2 -> oauth2
+                .jwt(jwt -> jwt.decoder(jwtDecoder())))
             .build();
     }
 
-    // Decoder JWT personalizado (comentado para demo)
-    /*
+    // Decoder JWT que valida issuer pero NO audience (por flexibilidad)
     @Bean
     public JwtDecoder jwtDecoder() {
         String issuerUri = "https://login.microsoftonline.com/47c2bee0-5950-430f-9276-bfc083e3d1da/v2.0";
         
         NimbusJwtDecoder jwtDecoder = JwtDecoders.fromIssuerLocation(issuerUri);
         
-        // Validar solo el timestamp, NO la audience
-        OAuth2TokenValidator<Jwt> withTimestamp = JwtValidators.createDefaultWithIssuer(issuerUri);
+        // Validar issuer y timestamp, pero NO audience específica
+        OAuth2TokenValidator<Jwt> withIssuer = JwtValidators.createDefaultWithIssuer(issuerUri);
         
-        jwtDecoder.setJwtValidator(withTimestamp);
+        jwtDecoder.setJwtValidator(withIssuer);
         
         return jwtDecoder;
     }
-    */
 
     @Bean
     CorsConfigurationSource corsConfigurationSource() {

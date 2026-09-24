@@ -25,20 +25,34 @@ api.interceptors.request.use(
         const accounts = msalInstance.getAllAccounts();
         
         if (accounts.length > 0) {
-          // Intentar obtener el token silenciosamente
+          // Intentar obtener el token silenciosamente con el scope correcto
           const response = await msalInstance.acquireTokenSilent({
-            scopes: ['openid', 'profile', 'User.Read'],
+            scopes: ['api://faba8741-ba0d-440c-b061-f1aa893eb957/access_as_user'],
             account: accounts[0],
           });
           
           if (response.accessToken) {
             config.headers.Authorization = `Bearer ${response.accessToken}`;
-            console.log('Token agregado a la request');
+            console.log('Token JWT agregado correctamente');
           }
         }
       }
     } catch (error) {
       console.error('Error al obtener token:', error);
+      
+      // Si falla silencioso, intentar con popup
+      if (error.name === 'InteractionRequiredAuthError' && msalInstance) {
+        try {
+          const accounts = msalInstance.getAllAccounts();
+          const response = await msalInstance.acquireTokenPopup({
+            scopes: ['api://faba8741-ba0d-440c-b061-f1aa893eb957/access_as_user'],
+            account: accounts[0],
+          });
+          config.headers.Authorization = `Bearer ${response.accessToken}`;
+        } catch (popupError) {
+          console.error('Error en popup:', popupError);
+        }
+      }
     }
     
     return config;

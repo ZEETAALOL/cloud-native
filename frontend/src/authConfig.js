@@ -39,11 +39,11 @@ export const msalConfig = {
 
 // Scopes requeridos para la API
 export const loginRequest = {
-  scopes: ['User.Read', 'openid', 'profile'], // Scopes básicos de Microsoft Graph
+  scopes: ['api://faba8741-ba0d-440c-b061-f1aa893eb957/access_as_user'],
 };
 
 // Configuración para obtener token de acceso
 export const tokenRequest = {
-  scopes: [`api://${msalConfig.auth.clientId}/access_as_user`],
+  scopes: ['api://faba8741-ba0d-440c-b061-f1aa893eb957/access_as_user'],
   forceRefresh: false,
 };
