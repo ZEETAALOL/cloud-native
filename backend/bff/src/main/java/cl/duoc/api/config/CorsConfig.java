@@ -23,7 +23,7 @@ public class CorsConfig {
         config.setAllowedOriginPatterns(Arrays.asList(
             "http://localhost:*",
             "http://127.0.0.1:*",
-            "http://54.196.217.252:*"
+            "http://54.147.147.166:*"
         ));
         
         // Permitir todos los headers
