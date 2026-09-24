@@ -33,7 +33,7 @@ public class SecurityConfig {
             .build();
     }
 
-    // Cadena 2: API con OAuth2 JWT (validación relajada para Azure AD)
+    // Cadena 2: API - DEMO MODE: Sin validación JWT para presentación
     @Bean
     @Order(2)
     SecurityFilterChain apiSecurity(HttpSecurity http) throws Exception {
@@ -43,13 +43,12 @@ public class SecurityConfig {
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .anyRequest().authenticated())  // Requiere autenticación JWT
-            .oauth2ResourceServer(oauth2 -> oauth2
-                .jwt(jwt -> jwt.decoder(jwtDecoder())))
+                .anyRequest().permitAll())  // DEMO: Permitir todo para presentación
             .build();
     }
 
-    // Decoder JWT personalizado que NO valida audience
+    // Decoder JWT personalizado (comentado para demo)
+    /*
     @Bean
     public JwtDecoder jwtDecoder() {
         String issuerUri = "https://login.microsoftonline.com/47c2bee0-5950-430f-9276-bfc083e3d1da/v2.0";
@@ -63,6 +62,7 @@ public class SecurityConfig {
         
         return jwtDecoder;
     }
+    */
 
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
