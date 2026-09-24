@@ -7,6 +7,13 @@ import org.springframework.core.annotation.Order;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
+import org.springframework.security.oauth2.core.OAuth2TokenValidator;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtDecoders;
+import org.springframework.security.oauth2.jwt.JwtValidators;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -26,7 +33,7 @@ public class SecurityConfig {
             .build();
     }
 
-    // Cadena 2: API con OAuth2 JWT
+    // Cadena 2: API con OAuth2 JWT (validación relajada para Azure AD)
     @Bean
     @Order(2)
     SecurityFilterChain apiSecurity(HttpSecurity http) throws Exception {
@@ -36,8 +43,25 @@ public class SecurityConfig {
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .anyRequest().permitAll())  // DEMO: Permitir acceso sin JWT para presentación
+                .anyRequest().authenticated())  // Requiere autenticación JWT
+            .oauth2ResourceServer(oauth2 -> oauth2
+                .jwt(jwt -> jwt.decoder(jwtDecoder())))
             .build();
+    }
+
+    // Decoder JWT personalizado que NO valida audience
+    @Bean
+    public JwtDecoder jwtDecoder() {
+        String issuerUri = "https://login.microsoftonline.com/47c2bee0-5950-430f-9276-bfc083e3d1da/v2.0";
+        
+        NimbusJwtDecoder jwtDecoder = JwtDecoders.fromIssuerLocation(issuerUri);
+        
+        // Validar solo el timestamp, NO la audience
+        OAuth2TokenValidator<Jwt> withTimestamp = JwtValidators.createDefaultWithIssuer(issuerUri);
+        
+        jwtDecoder.setJwtValidator(withTimestamp);
+        
+        return jwtDecoder;
     }
 
     @Bean
