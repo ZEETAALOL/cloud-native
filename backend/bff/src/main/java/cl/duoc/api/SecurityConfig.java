@@ -36,9 +36,7 @@ public class SecurityConfig {
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .anyRequest().authenticated())  // Requiere autenticación JWT
-            .oauth2ResourceServer(oauth2 -> oauth2
-                .jwt(Customizer.withDefaults()))
+                .anyRequest().permitAll())  // DEMO: Permitir acceso sin JWT para presentación
             .build();
     }
 
