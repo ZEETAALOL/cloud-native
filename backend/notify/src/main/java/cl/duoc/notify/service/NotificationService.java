@@ -96,4 +96,34 @@ public class NotificationService {
             .filter(n -> n.getChannel().equalsIgnoreCase(channel))
             .toList();
     }
+
+    public java.util.Map<String, Object> getStats() {
+        logger.info("Calculando estadísticas de notificaciones");
+        
+        java.util.Map<String, Object> stats = new java.util.LinkedHashMap<>();
+        stats.put("total", notifications.size());
+        
+        // Contar por canal
+        java.util.Map<String, Long> byChannel = notifications.values().stream()
+            .collect(java.util.stream.Collectors.groupingBy(
+                Notification::getChannel, 
+                java.util.stream.Collectors.counting()
+            ));
+        stats.put("byChannel", byChannel);
+        
+        // Contar por estado
+        java.util.Map<String, Long> byStatus = notifications.values().stream()
+            .collect(java.util.stream.Collectors.groupingBy(
+                Notification::getStatus, 
+                java.util.stream.Collectors.counting()
+            ));
+        stats.put("byStatus", byStatus);
+        
+        // Última notificación enviada
+        notifications.values().stream()
+            .max((n1, n2) -> n1.getSentAt().compareTo(n2.getSentAt()))
+            .ifPresent(last -> stats.put("lastNotification", last));
+        
+        return stats;
+    }
 }

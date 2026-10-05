@@ -1,105 +1,111 @@
-# Orders Service - Pedidos360
+# Microservicio Orders - Gestión de Pedidos
 
-Microservicio de gestión de pedidos y clientes del sistema Pedidos360.
+Microservicio para la gestión completa del ciclo de vida de pedidos en Pedidos360.
 
-## 🚀 Inicio Rápido
+## Funcionalidades
 
-```powershell
-mvn spring-boot:run
-```
+- ✅ CRUD completo de pedidos
+- ✅ Gestión de estados con validación de flujo
+- ✅ Filtrado por estado, fecha y cliente
+- ✅ Estadísticas de pedidos
+- ✅ Validación de transiciones de estado
 
-Corre en **http://localhost:8081**
-
-## 🛠️ Tecnologías
-
-- Spring Boot 3.2.0
-- Java 17
-- Maven
-
-## 📋 Prerequisitos
-
-- Java 17 (JDK)
-- Maven
-
-## 📁 Estructura
+## Estados del Pedido
 
 ```
-src/main/
-├── java/cl/duoc/orders/
-│   ├── OrdersApplication.java         # Main class
-│   ├── controller/
-│   │   └── ClienteController.java     # GET /clientes
-│   └── dto/
-│       └── ClienteResponse.java       # Record
-└── resources/
-    └── application.yml
+CREADO → ACEPTADO → EN_PREPARACION → DESPACHADO → ENTREGADO
+                                            ↓
+                                       CANCELADO
 ```
 
-## 🔌 Endpoints
+**Reglas de negocio:**
+- No se puede "despachar" sin "aceptar"
+- Los estados finales (ENTREGADO, CANCELADO) no pueden cambiar
+- En cualquier momento se puede CANCELAR (excepto si ya está ENTREGADO)
 
-### GET /clientes
-Retorna información del cliente registrado en el sistema.
+## Endpoints
 
-**Sin autenticación requerida** (solo llamado desde BFF).
+### Crear Pedido
+```http
+POST /api/orders
+Content-Type: application/json
 
-**Respuesta (200):**
-```json
 {
-  "rut": "20456789-3",
-  "nombre": "Bastián",
-  "apellido": "Martínez",
-  "direccion": "Av. Providencia 2594, Providencia",
-  "comuna": "Santiago"
+  "customerId": "12345",
+  "customerName": "Juan Pérez",
+  "customerEmail": "juan@example.com",
+  "deliveryAddress": "Av. Providencia 123",
+  "items": [
+    {
+      "productId": 1,
+      "productName": "Café Latte",
+      "quantity": 2,
+      "price": 3500.0,
+      "notes": "Sin azúcar"
+    }
+  ],
+  "notes": "Entregar en recepción"
 }
 ```
 
-## 📦 Build y Ejecución
+### Obtener Pedido por ID
+```http
+GET /api/orders/{id}
+```
 
-```powershell
+### Cambiar Estado del Pedido
+```http
+PUT /api/orders/{id}/status
+Content-Type: application/json
+
+{
+  "status": "ACEPTADO",
+  "updatedBy": "operador@pedidos360.cl",
+  "notes": "Pedido aceptado y en preparación"
+}
+```
+
+### Filtrar Pedidos
+```http
+GET /api/orders?status=CREADO
+GET /api/orders?from=2024-01-01T00:00:00&to=2024-12-31T23:59:59
+GET /api/orders?status=DESPACHADO&from=2024-01-01T00:00:00&to=2024-12-31T23:59:59
+GET /api/orders?customerId=12345
+```
+
+### Cancelar Pedido
+```http
+DELETE /api/orders/{id}?reason=Cliente solicitó cancelación
+```
+
+### Estadísticas
+```http
+GET /api/orders/stats
+```
+
+## Compilar y Ejecutar
+
+```bash
 # Compilar
 mvn clean package
 
-# Ejecutar con Maven
-mvn spring-boot:run
-
-# Ejecutar JAR
+# Ejecutar
 java -jar target/ms-pedidos360-orders-1.0.0.jar
+
+# Con Docker
+docker build -t pedidos360/orders:latest .
+docker run -p 8081:8081 pedidos360/orders:latest
 ```
 
-## 🧪 Probar Manualmente
+## Health Check
 
-```powershell
-# PowerShell
-Invoke-WebRequest http://localhost:8081/clientes
-
-# Con curl
-curl http://localhost:8081/clientes
+```http
+GET http://localhost:8081/actuator/health
 ```
 
-## 🔄 Integración
+## Próximas Integraciones
 
-Este microservicio es llamado por:
-- **BFF** en `http://localhost:8080` mediante `ClienteRepository.java`
-
-## 📊 Logs
-
-```powershell
-# Ver logs en tiempo real
-mvn spring-boot:run
-
-# Deberías ver:
-# INFO: Solicitud recibida en /clientes
-# INFO: Retornando cliente: Bastián Martínez
-```
-
-## 🚀 Futuras Mejoras
-
-- [ ] Conectar a base de datos real
-- [ ] Implementar CRUD completo de clientes
-- [ ] Agregar validaciones
-- [ ] Agregar tests unitarios
-- [ ] Agregar manejo de errores personalizado
-
----
-
-Ver documentación completa en [`../../docs/INSTRUCCIONES_SETUP.md`](../../docs/INSTRUCCIONES_SETUP.md)
+- [ ] Publicar eventos a Kafka (orders.events)
+- [ ] Enviar notificaciones a RabbitMQ
+- [ ] Decrementar stock en Catalog al ACEPTAR
+- [ ] Restaurar stock en Catalog al CANCELAR

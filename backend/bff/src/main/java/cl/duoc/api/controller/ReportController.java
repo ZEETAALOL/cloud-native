@@ -1,63 +1,166 @@
 package cl.duoc.api.controller;
 
-import cl.duoc.api.dto.ReportDataResponse;
-import cl.duoc.api.service.ReportService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestClient;
 
-import java.util.List;
-
+/**
+ * BFF Controller para Reports - Delega al microservicio ms-pedidos360-report
+ * Endpoints según caso PDF: /api/report/kpis, /api/report/top-products
+ */
 @RestController
-@RequestMapping("/api/reports")
+@RequestMapping("/api/report")
 public class ReportController {
     
-    private static final Logger logger = LoggerFactory.getLogger(ReportController.class);
-    
-    private final ReportService reportService;
-    
-    public ReportController(ReportService reportService) {
-        this.reportService = reportService;
+    private static final Logger log = LoggerFactory.getLogger(ReportController.class);
+
+    @Value("${microservices.report.base-url:http://localhost:8085}")
+    private String reportBaseUrl;
+
+    private final RestClient restClient;
+
+    public ReportController() {
+        this.restClient = RestClient.builder().build();
     }
-    
-    @GetMapping("/sales")
-    public ResponseEntity<ReportDataResponse> getSalesReport() {
-        logger.info("GET /api/reports/sales - Solicitando reporte de ventas");
-        ReportDataResponse report = reportService.getSalesReport();
-        logger.info("Reporte de ventas obtenido exitosamente: {}", report.getReportId());
-        return ResponseEntity.ok(report);
+
+    /**
+     * GET /api/report/kpis?range=last24h
+     */
+    @GetMapping("/kpis")
+    public ResponseEntity<?> getKPIs(
+            @RequestParam(required = false, defaultValue = "last24h") String range,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        
+        log.info("BFF: GET /api/report/kpis?range={}", range);
+        
+        try {
+            return restClient.get()
+                .uri(reportBaseUrl + "/api/report/kpis?range=" + range)
+                .header(HttpHeaders.AUTHORIZATION, authHeader)
+                .retrieve()
+                .toEntity(Object.class);
+        } catch (Exception e) {
+            log.error("Error obteniendo KPIs", e);
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body("Servicio de reportes no disponible");
+        }
     }
-    
-    @GetMapping("/inventory")
-    public ResponseEntity<ReportDataResponse> getInventoryReport() {
-        logger.info("GET /api/reports/inventory - Solicitando reporte de inventario");
-        ReportDataResponse report = reportService.getInventoryReport();
-        logger.info("Reporte de inventario obtenido exitosamente: {}", report.getReportId());
-        return ResponseEntity.ok(report);
+
+    /**
+     * GET /api/report/top-products?range=last7d
+     */
+    @GetMapping("/top-products")
+    public ResponseEntity<?> getTopProducts(
+            @RequestParam(required = false, defaultValue = "last7d") String range,
+            @RequestParam(required = false, defaultValue = "10") Integer limit,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        
+        log.info("BFF: GET /api/report/top-products?range={}&limit={}", range, limit);
+        
+        try {
+            return restClient.get()
+                .uri(reportBaseUrl + "/api/report/top-products?range=" + range + "&limit=" + limit)
+                .header(HttpHeaders.AUTHORIZATION, authHeader)
+                .retrieve()
+                .toEntity(Object.class);
+        } catch (Exception e) {
+            log.error("Error obteniendo top productos", e);
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body("Servicio de reportes no disponible");
+        }
     }
-    
-    @GetMapping("/customers")
-    public ResponseEntity<ReportDataResponse> getCustomerReport() {
-        logger.info("GET /api/reports/customers - Solicitando reporte de clientes");
-        ReportDataResponse report = reportService.getCustomerReport();
-        logger.info("Reporte de clientes obtenido exitosamente: {}", report.getReportId());
-        return ResponseEntity.ok(report);
+
+    /**
+     * GET /api/report/sales-by-hour
+     */
+    @GetMapping("/sales-by-hour")
+    public ResponseEntity<?> getSalesByHour(
+            @RequestParam(required = false, defaultValue = "today") String date,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        
+        log.info("BFF: GET /api/report/sales-by-hour?date={}", date);
+        
+        try {
+            return restClient.get()
+                .uri(reportBaseUrl + "/api/report/sales-by-hour?date=" + date)
+                .header(HttpHeaders.AUTHORIZATION, authHeader)
+                .retrieve()
+                .toEntity(Object.class);
+        } catch (Exception e) {
+            log.error("Error obteniendo ventas por hora", e);
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body("Servicio de reportes no disponible");
+        }
     }
-    
-    @GetMapping("/performance")
-    public ResponseEntity<ReportDataResponse> getPerformanceReport() {
-        logger.info("GET /api/reports/performance - Solicitando reporte de rendimiento");
-        ReportDataResponse report = reportService.getPerformanceReport();
-        logger.info("Reporte de rendimiento obtenido exitosamente: {}", report.getReportId());
-        return ResponseEntity.ok(report);
+
+    /**
+     * GET /api/report/lead-time
+     */
+    @GetMapping("/lead-time")
+    public ResponseEntity<?> getLeadTime(
+            @RequestParam(required = false, defaultValue = "last7d") String range,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        
+        log.info("BFF: GET /api/report/lead-time?range={}", range);
+        
+        try {
+            return restClient.get()
+                .uri(reportBaseUrl + "/api/report/lead-time?range=" + range)
+                .header(HttpHeaders.AUTHORIZATION, authHeader)
+                .retrieve()
+                .toEntity(Object.class);
+        } catch (Exception e) {
+            log.error("Error obteniendo lead time", e);
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body("Servicio de reportes no disponible");
+        }
     }
-    
-    @GetMapping("/types")
-    public ResponseEntity<List<String>> getAvailableReportTypes() {
-        logger.info("GET /api/reports/types - Solicitando tipos de reportes disponibles");
-        List<String> types = reportService.getAvailableReportTypes();
-        logger.info("Tipos de reportes obtenidos: {}", types);
-        return ResponseEntity.ok(types);
+
+    /**
+     * GET /api/report/active-orders
+     */
+    @GetMapping("/active-orders")
+    public ResponseEntity<?> getActiveOrders(
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        
+        log.info("BFF: GET /api/report/active-orders");
+        
+        try {
+            return restClient.get()
+                .uri(reportBaseUrl + "/api/report/active-orders")
+                .header(HttpHeaders.AUTHORIZATION, authHeader)
+                .retrieve()
+                .toEntity(Object.class);
+        } catch (Exception e) {
+            log.error("Error obteniendo pedidos activos", e);
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body("Servicio de reportes no disponible");
+        }
+    }
+
+    /**
+     * GET /api/report/revenue
+     */
+    @GetMapping("/revenue")
+    public ResponseEntity<?> getRevenue(
+            @RequestParam(required = false, defaultValue = "last30d") String range,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        
+        log.info("BFF: GET /api/report/revenue?range={}", range);
+        
+        try {
+            return restClient.get()
+                .uri(reportBaseUrl + "/api/report/revenue?range=" + range)
+                .header(HttpHeaders.AUTHORIZATION, authHeader)
+                .retrieve()
+                .toEntity(Object.class);
+        } catch (Exception e) {
+            log.error("Error obteniendo ingresos", e);
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body("Servicio de reportes no disponible");
+        }
     }
 }

@@ -57,4 +57,56 @@ public class AuditRepository {
     public AuditEvent findById(Long id) {
         return events.get(id);
     }
+
+    public List<AuditEvent> findByEntity(String entity) {
+        return events.values().stream()
+            .filter(e -> e.getEntity().equals(entity))
+            .collect(Collectors.toList());
+    }
+
+    public List<AuditEvent> findByDateRange(LocalDateTime from, LocalDateTime to) {
+        return events.values().stream()
+            .filter(e -> !e.getTimestamp().isBefore(from) && !e.getTimestamp().isAfter(to))
+            .sorted((e1, e2) -> e2.getTimestamp().compareTo(e1.getTimestamp()))
+            .collect(Collectors.toList());
+    }
+
+    public List<AuditEvent> findByUserIdAndDateRange(String userId, LocalDateTime from, LocalDateTime to) {
+        return events.values().stream()
+            .filter(e -> e.getUserId().equals(userId))
+            .filter(e -> !e.getTimestamp().isBefore(from) && !e.getTimestamp().isAfter(to))
+            .sorted((e1, e2) -> e2.getTimestamp().compareTo(e1.getTimestamp()))
+            .collect(Collectors.toList());
+    }
+
+    public List<AuditEvent> findByActionAndDateRange(String action, LocalDateTime from, LocalDateTime to) {
+        return events.values().stream()
+            .filter(e -> e.getAction().equals(action))
+            .filter(e -> !e.getTimestamp().isBefore(from) && !e.getTimestamp().isAfter(to))
+            .sorted((e1, e2) -> e2.getTimestamp().compareTo(e1.getTimestamp()))
+            .collect(Collectors.toList());
+    }
+
+    public List<AuditEvent> findByEntityAndDateRange(String entity, LocalDateTime from, LocalDateTime to) {
+        return events.values().stream()
+            .filter(e -> e.getEntity().equals(entity))
+            .filter(e -> !e.getTimestamp().isBefore(from) && !e.getTimestamp().isAfter(to))
+            .sorted((e1, e2) -> e2.getTimestamp().compareTo(e1.getTimestamp()))
+            .collect(Collectors.toList());
+    }
+
+    public List<AuditEvent> findByEntityAndEntityId(String entity, String entityId) {
+        return events.values().stream()
+            .filter(e -> e.getEntity().equals(entity))
+            .filter(e -> e.getDetails() != null && e.getDetails().contains(entityId))
+            .sorted((e1, e2) -> e2.getTimestamp().compareTo(e1.getTimestamp()))
+            .collect(Collectors.toList());
+    }
+
+    public List<AuditEvent> findRecent(Integer limit) {
+        return events.values().stream()
+            .sorted((e1, e2) -> e2.getTimestamp().compareTo(e1.getTimestamp()))
+            .limit(limit)
+            .collect(Collectors.toList());
+    }
 }
