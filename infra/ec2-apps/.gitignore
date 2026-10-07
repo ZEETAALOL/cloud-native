@@ -1,0 +1,13 @@
+# Backups
+*.backup
+
+# Environment files
+.env
+.env.local
+
+# Logs
+*.log
+logs/
+
+# Docker volumes (si se copian localmente)
+volumes/

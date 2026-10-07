@@ -1,0 +1,85 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: ms-pedidos360-bff
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${ENTRA_ISSUER_URI}
+          audiences:
+            - ${ENTRA_API_CLIENT_ID}
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:localhost}
+    port: ${SPRING_RABBITMQ_PORT:5672}
+    username: ${SPRING_RABBITMQ_USERNAME:admin}
+    password: ${SPRING_RABBITMQ_PASSWORD:admin123}
+
+microservices:
+  clientes:
+    base-url: ${MICROSERVICES_CLIENTES_BASE_URL:http://localhost:8081}
+  audit:
+    base-url: ${MICROSERVICES_AUDIT_BASE_URL:http://localhost:8083}
+  catalog:
+    base-url: ${MICROSERVICES_CATALOG_BASE_URL:http://localhost:8084}
+  report:
+    base-url: ${MICROSERVICES_REPORT_BASE_URL:http://localhost:8085}
+  notify:
+    base-url: ${MICROSERVICES_NOTIFY_BASE_URL:http://localhost:8086}
+
+logging:
+  level:
+    cl.duoc: DEBUG
+    org.springframework.security: TRACE
+    org.springframework.security.oauth2: TRACE
+
+# Resilience4j Circuit Breaker Configuration
+resilience4j:
+  circuitbreaker:
+    instances:
+      catalogService:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 10s
+        failureRateThreshold: 50
+        eventConsumerBufferSize: 10
+      ordersService:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 10s
+        failureRateThreshold: 50
+        eventConsumerBufferSize: 10
+      reportService:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 10s
+        failureRateThreshold: 50
+        eventConsumerBufferSize: 10
+      auditService:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 10s
+        failureRateThreshold: 50
+        eventConsumerBufferSize: 10
+  retry:
+    instances:
+      catalogService:
+        maxAttempts: 3
+        waitDuration: 1s
+      ordersService:
+        maxAttempts: 3
+        waitDuration: 1s
