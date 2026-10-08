@@ -2,6 +2,10 @@
 
 Sistema de microservicios para gestión completa del ciclo de vida de pedidos, desarrollado con arquitectura cloud-native y desplegado en AWS EC2.
 
+**Evaluación Final Transversal (EFT) - DSY1107**  
+**Fecha:** Octubre 2026  
+**Estudiante:** Bastián Martínez
+
 ## 🎯 Caso de Uso
 
 Plataforma unificada para 20 PyMEs (panaderías/cafés) que permite:
@@ -72,50 +76,73 @@ El sistema está compuesto por **6 microservicios independientes**:
 
 ## 🚀 Despliegue Actual
 
-### AWS EC2
+### Arquitectura AWS (2 instancias EC2)
 
-**IP:** `54.147.147.166`
+#### **EC2-1 (ec2-apps)** - Microservicios + Bases de Datos
+- **Tipo:** t2.medium (4 GB RAM)
+- **IP Pública:** `54.221.95.141`
+- **IP Privada:** `172.31.42.221`
 
-**Containers corriendo:**
-- `bff` (Puerto 8080) - Backend For Frontend
-- `orders` (Puerto 8081) - Gestión de Pedidos ✨ **NUEVO**
-- `catalog` (Puerto 8084) - Catálogo de Productos
-- `audit` (Puerto 8083) - Auditoría
-- `report` (Puerto 8085) - Reportes y KPIs ✨ **MEJORADO**
-- `notify` (Puerto 8086) - Notificaciones
-- `rabbitmq` (Puertos 5672, 15672) - Message Broker
+**Servicios en ejecución:**
+- ✅ `orders` (Puerto 8081) - Gestión de Pedidos - **HEALTHY**
+- ✅ `catalog` (Puerto 8084) - Catálogo de Productos - **HEALTHY**
+- ✅ `audit` (Puerto 8083) - Auditoría - **HEALTHY**
+- ✅ `report` (Puerto 8085) - Reportes y KPIs - **HEALTHY**
+- ✅ `postgres` (Puerto 5432) - Base de datos relacional - **HEALTHY**
+- ✅ `mongodb` (Puerto 27017) - Base de datos documental - **HEALTHY**
+- ⚠️ `bff` (Puerto 8080) - Backend For Frontend - **UNHEALTHY** (ver limitaciones)
+- ⚠️ `notify` (Puerto 8086) - Notificaciones - **UNHEALTHY** (ver limitaciones)
+
+#### **EC2-2 (ec2-mq)** - RabbitMQ
+- **Tipo:** t2.micro (1 GB RAM)
+- **IP Pública:** `34.239.139.42`
+- **IP Privada:** `172.31.45.236`
+
+**Servicios en ejecución:**
+- ✅ `rabbitmq` (Puertos 5672 AMQP, 15672 Management) - **HEALTHY**
 
 ### URLs de Acceso
 
-**Backend (BFF):**
+**Orders Service:**
 ```
-http://54.147.147.166:8080
-```
-
-**Frontend:**
-```
-Local con OAuth2: http://localhost:5173
+http://54.221.95.141:8081
 ```
 
-**Health Checks:**
+**Catalog Service:**
+```
+http://54.221.95.141:8084
+```
+
+**Audit Service:**
+```
+http://54.221.95.141:8083
+```
+
+**Report Service:**
+```
+http://54.221.95.141:8085
+```
+
+**RabbitMQ Management UI:**
+```
+http://34.239.139.42:15672
+Usuario: admin
+Password: admin123
+```
+
+**Health Checks (Servicios Funcionando):**
 ```bash
-# BFF
-curl http://54.147.147.166:8080/actuator/health
-
 # Orders
-curl http://54.147.147.166:8081/actuator/health
+curl http://54.221.95.141:8081/actuator/health
 
 # Catalog
-curl http://54.147.147.166:8084/actuator/health
+curl http://54.221.95.141:8084/actuator/health
 
 # Audit
-curl http://54.147.147.166:8083/actuator/health
+curl http://54.221.95.141:8083/actuator/health
 
 # Report
-curl http://54.147.147.166:8085/actuator/health
-
-# Notify
-curl http://54.147.147.166:8086/actuator/health
+curl http://54.221.95.141:8085/actuator/health
 ```
 
 ## 📋 Endpoints Principales
@@ -297,10 +324,59 @@ Todos los microservicios exponen:
 ### RabbitMQ Management
 
 ```
-http://54.147.147.166:15672
+http://34.239.139.42:15672
 Usuario: admin
 Password: admin123
 ```
+
+## ⚠️ Limitaciones Conocidas
+
+### Integración RabbitMQ (BFF y Notify)
+
+**Estado:** Los microservices BFF y Notify quedan en estado UNHEALTHY debido a un problema en la integración con RabbitMQ.
+
+**Síntoma:**
+```
+java.net.ConnectException: Connection refused
+at com.rabbitmq.client.impl.SocketFrameHandlerFactory.create
+```
+
+**Verificaciones realizadas:**
+- ✅ Conectividad de red confirmada (telnet desde EC2-1 a EC2-2 puerto 5672 exitoso)
+- ✅ RabbitMQ healthy en EC2-2 y logs muestran intentos de conexión desde EC2-1
+- ✅ Security groups configurados correctamente (puerto 5672 abierto)
+- ✅ Docker bridge networking configurado
+
+**Configuraciones intentadas:**
+1. Aumento de timeouts en docker-compose.yml:
+   ```
+   SPRING_RABBITMQ_CONNECTION_TIMEOUT=60000
+   SPRING_RABBITMQ_REQUESTED_HEARTBEAT=60
+   ```
+
+2. Configuración de RabbitMQ en EC2-2:
+   ```
+   handshake_timeout = 60000
+   channel_max = 2047
+   heartbeat = 60
+   ```
+
+3. Upgrade de instancia EC2-1 a t2.medium (4 GB RAM)
+
+**Diagnóstico:**
+- El error ocurre durante el handshake del cliente RabbitMQ de Java/Spring
+- No es un problema de OS-level networking sino de Docker bridge networking
+- Los logs de RabbitMQ muestran: `{handshake_timeout,handshake}` al cerrar conexiones
+- El cliente Spring AMQP no completa el handshake antes del timeout
+
+**Workaround temporal:**
+Los microservicios Orders, Catalog, Audit y Report funcionan correctamente de forma independiente sin necesidad de RabbitMQ. BFF y Notify pueden omitirse para testing de los otros servicios.
+
+**Próximos pasos para resolución:**
+1. Investigar configuración de Docker networking (host vs bridge)
+2. Probar con variables de entorno adicionales de Spring AMQP
+3. Considerar despliegue de RabbitMQ en la misma instancia EC2-1
+4. Verificar versiones de compatibilidad entre Spring Boot 3.2.0 y RabbitMQ client
 
 ## ✅ Checklist de Funcionalidades Completadas
 
@@ -379,8 +455,13 @@ Evaluación: EP1 (16% de la nota final)
 ## 📅 Última Actualización
 
 **Fecha:** 2025-01-06  
-**Versión:** 2.0.0  
-**Estado:** ✅ Microservicios completos y funcionales
+**Versión:** 2.1.0  
+**Estado:** ✅ 4 de 6 microservicios funcionales + Bases de datos + RabbitMQ desplegado
+
+**Servicios Operacionales:**
+- Orders, Catalog, Audit, Report (100% funcionales)
+- PostgreSQL, MongoDB (100% funcionales)
+- RabbitMQ desplegado (BFF/Notify con limitaciones de conexión)
 
 ---
 
