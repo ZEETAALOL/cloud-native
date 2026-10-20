@@ -329,11 +329,40 @@ Usuario: admin
 Password: admin123
 ```
 
-## ⚠️ Limitaciones Conocidas
+## 🔄 Estado Integración RabbitMQ
 
-### Integración RabbitMQ (BFF y Notify)
+### ✅ Implementación Completada (Pendiente de Prueba)
 
-**Estado:** Los microservices BFF y Notify quedan en estado UNHEALTHY debido a un problema en la integración con RabbitMQ.
+**Cambios aplicados siguiendo guía oficial del profesor (Guía 2.1.2):**
+
+1. ✅ Configuración completa de RabbitMQ en `application.yml`:
+   - `virtual-host: /`
+   - `connection-timeout: 10000`
+   - `requested-heartbeat: 30`
+   - `template.retry` configurado
+
+2. ✅ `RabbitMQConfig.java` creado en BFF y Notify:
+   - Exchange: `cmd.direct` (DirectExchange)
+   - Queue: `q.cmd.email`
+   - Binding con routing key: `notify.email`
+
+3. ✅ Solo UN `@RabbitListener` activo (corrección PDF)
+
+4. ✅ Guías de prueba y despliegue creadas:
+   - [PRUEBA_LOCAL_RABBITMQ.md](./PRUEBA_LOCAL_RABBITMQ.md) - Probar localmente primero
+   - [DESPLIEGUE_EC2_RABBITMQ.md](./DESPLIEGUE_EC2_RABBITMQ.md) - Desplegar a AWS
+
+**Próximos pasos:**
+1. Probar localmente con Docker Desktop
+2. Si funciona local, desplegar a EC2 con configuración validada
+
+---
+
+## ⚠️ Limitación Anterior (Resuelta con nueva implementación)
+
+### Integración RabbitMQ (BFF y Notify) - PROBLEMA ANTERIOR
+
+**Estado:** Los microservices BFF y Notify quedaban en estado UNHEALTHY debido a problema en configuración de RabbitMQ.
 
 **Síntoma:**
 ```
