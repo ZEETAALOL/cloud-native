@@ -1,28 +1,13 @@
 {
   "rabbit_version": "3.13.0",
   "rabbitmq_version": "3.13.0",
-  "users": [
-    {
-      "name": "admin",
-      "password_hash": "JThSk+OzKs+2aFGkKvXcVR3s0KvvYYvTJxr3vFKSfCOGOXrE",
-      "hashing_algorithm": "rabbit_password_hashing_sha256",
-      "tags": ["administrator"]
-    }
-  ],
+  "users": [],
   "vhosts": [
     {
       "name": "/"
     }
   ],
-  "permissions": [
-    {
-      "user": "admin",
-      "vhost": "/",
-      "configure": ".*",
-      "write": ".*",
-      "read": ".*"
-    }
-  ],
+  "permissions": [],
   "exchanges": [
     {
       "name": "cmd.direct",
@@ -60,8 +45,7 @@
       "auto_delete": false,
       "arguments": {
         "x-dead-letter-exchange": "cmd.dead.dlx",
-        "x-dead-letter-routing-key": "email.dlq",
-        "x-message-ttl": 300000
+        "x-dead-letter-routing-key": "email.send"
       }
     },
     {
@@ -69,9 +53,7 @@
       "vhost": "/",
       "durable": true,
       "auto_delete": false,
-      "arguments": {
-        "x-message-ttl": 86400000
-      }
+      "arguments": {}
     },
     {
       "name": "q.cmd.kitchen",
@@ -80,8 +62,7 @@
       "auto_delete": false,
       "arguments": {
         "x-dead-letter-exchange": "cmd.dead.dlx",
-        "x-dead-letter-routing-key": "kitchen.dlq",
-        "x-message-ttl": 300000
+        "x-dead-letter-routing-key": "kitchen.ticket"
       }
     },
     {
@@ -89,29 +70,24 @@
       "vhost": "/",
       "durable": true,
       "auto_delete": false,
-      "arguments": {
-        "x-message-ttl": 86400000
-      }
+      "arguments": {}
     },
     {
-      "name": "q.cmd.sms",
+      "name": "q.cmd.invoice",
       "vhost": "/",
       "durable": true,
       "auto_delete": false,
       "arguments": {
         "x-dead-letter-exchange": "cmd.dead.dlx",
-        "x-dead-letter-routing-key": "sms.dlq",
-        "x-message-ttl": 300000
+        "x-dead-letter-routing-key": "invoice.gen"
       }
     },
     {
-      "name": "q.cmd.sms.dlq",
+      "name": "q.cmd.invoice.dlq",
       "vhost": "/",
       "durable": true,
       "auto_delete": false,
-      "arguments": {
-        "x-message-ttl": 86400000
-      }
+      "arguments": {}
     }
   ],
   "bindings": [
@@ -120,7 +96,7 @@
       "vhost": "/",
       "destination": "q.cmd.email",
       "destination_type": "queue",
-      "routing_key": "notify.email",
+      "routing_key": "email.send",
       "arguments": {}
     },
     {
@@ -128,15 +104,15 @@
       "vhost": "/",
       "destination": "q.cmd.kitchen",
       "destination_type": "queue",
-      "routing_key": "notify.kitchen",
+      "routing_key": "kitchen.ticket",
       "arguments": {}
     },
     {
       "source": "cmd.direct",
       "vhost": "/",
-      "destination": "q.cmd.sms",
+      "destination": "q.cmd.invoice",
       "destination_type": "queue",
-      "routing_key": "notify.sms",
+      "routing_key": "invoice.gen",
       "arguments": {}
     },
     {
@@ -144,7 +120,7 @@
       "vhost": "/",
       "destination": "q.cmd.email",
       "destination_type": "queue",
-      "routing_key": "notify.email.*",
+      "routing_key": "email.#",
       "arguments": {}
     },
     {
@@ -152,7 +128,15 @@
       "vhost": "/",
       "destination": "q.cmd.kitchen",
       "destination_type": "queue",
-      "routing_key": "notify.kitchen.*",
+      "routing_key": "kitchen.#",
+      "arguments": {}
+    },
+    {
+      "source": "cmd.topic",
+      "vhost": "/",
+      "destination": "q.cmd.invoice",
+      "destination_type": "queue",
+      "routing_key": "invoice.*",
       "arguments": {}
     },
     {
@@ -160,7 +144,7 @@
       "vhost": "/",
       "destination": "q.cmd.email.dlq",
       "destination_type": "queue",
-      "routing_key": "email.dlq",
+      "routing_key": "email.send",
       "arguments": {}
     },
     {
@@ -168,15 +152,15 @@
       "vhost": "/",
       "destination": "q.cmd.kitchen.dlq",
       "destination_type": "queue",
-      "routing_key": "kitchen.dlq",
+      "routing_key": "kitchen.ticket",
       "arguments": {}
     },
     {
       "source": "cmd.dead.dlx",
       "vhost": "/",
-      "destination": "q.cmd.sms.dlq",
+      "destination": "q.cmd.invoice.dlq",
       "destination_type": "queue",
-      "routing_key": "sms.dlq",
+      "routing_key": "invoice.gen",
       "arguments": {}
     }
   ]

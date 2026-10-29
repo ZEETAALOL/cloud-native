@@ -538,3 +538,301 @@ curl http://localhost:8080/api/report/kpis?range=last24h
 ---
 
 **¡Sistema listo para la siguiente evaluación!** 🎉
+
+
+---
+
+## 📋 EVALUACIÓN 2 - GUÍA DE EXPLICACIÓN
+
+### 🎯 ¿Qué hicimos en esta evaluación?
+
+Implementamos **comunicación asíncrona** entre microservicios usando **RabbitMQ** como message broker (intermediario de mensajes).
+
+---
+
+### 🔧 1. Infraestructura de RabbitMQ
+
+**¿Qué hicimos?**  
+Configuramos RabbitMQ con un archivo `definitions.json` que crea automáticamente toda la topología de colas y exchanges.
+
+**¿Por qué?**  
+Para que los microservicios puedan comunicarse de forma **desacoplada** - es decir, Orders no necesita saber dónde está Notify, solo publica el mensaje y RabbitMQ lo entrega.
+
+**Componentes creados:**
+
+#### **6 Colas (Queues):**
+- `q.cmd.email` - para notificaciones por email
+- `q.cmd.kitchen` - para órdenes de cocina  
+- `q.cmd.invoice` - para facturación
+- `q.cmd.email.dlq`, `q.cmd.kitchen.dlq`, `q.cmd.invoice.dlq` - **Dead Letter Queues** (DLQ)
+
+**¿Qué es una DLQ?**  
+Una cola de "mensajes fallidos". Si un mensaje no se puede procesar (error, timeout, etc.), en lugar de perderse, va a la DLQ donde podemos revisarlo después.
+
+#### **3 Exchanges:**
+- `cmd.direct` - ruteo directo (debe coincidir exactamente la routing key)
+- `cmd.topic` - ruteo por patrones (ejemplo: `email.*` o `kitchen.#`)
+- `cmd.dead.dlx` - exchange para enviar mensajes fallidos a las DLQ
+
+**¿Qué es un Exchange?**  
+Un "router de mensajes". Recibe mensajes y los envía a las colas según reglas de ruteo.
+
+**¿Qué es un Routing Key?**  
+Una "etiqueta" que se le pone al mensaje. Ejemplo: si enviamos con routing key `email.send`, el exchange lo envía a la cola de emails.
+
+---
+
+### 🔧 2. Microservicio Orders (Producer)
+
+**¿Qué hicimos?**  
+Modificamos el microservicio **Orders** para que **publique mensajes** en RabbitMQ cuando ocurra un evento.
+
+**¿Por qué?**  
+Orders es el que recibe los pedidos. Cuando se crea un pedido, necesita avisar a otros servicios (Notify para enviar email, Kitchen para preparar, etc.) pero SIN llamarlos directamente por HTTP.
+
+**Archivos creados/modificados:**
+
+1. **`pom.xml`** - agregamos la dependencia `spring-boot-starter-amqp` (para hablar con RabbitMQ)
+
+2. **`application.yml`** - configuramos la conexión a RabbitMQ:
+   ```yaml
+   spring:
+     rabbitmq:
+       host: localhost
+       port: 5672
+       username: admin
+       password: admin123
+   ```
+
+3. **`RabbitConfig.java`** - configuramos que los mensajes se envíen en formato JSON
+
+4. **`NotificationPublisher.java`** - el servicio que publica mensajes:
+   ```java
+   rabbitTemplate.convertAndSend("cmd.direct", "email.send", mensaje);
+   ```
+   - Exchange: `cmd.direct`
+   - Routing key: `email.send`
+   - Mensaje: objeto JSON con datos del pedido
+
+5. **`NotificationTestController.java`** - endpoint de prueba para enviar notificaciones desde Postman
+
+**Flujo:**
+```
+HTTP POST → Orders → Publica mensaje → RabbitMQ (exchange cmd.direct con key email.send)
+```
+
+---
+
+### 🔧 3. Microservicio Notify (Consumer)
+
+**¿Qué hicimos?**  
+Verificamos que el microservicio **Notify** pueda **consumir mensajes** de RabbitMQ.
+
+**¿Por qué?**  
+Notify es el servicio de notificaciones. Escucha constantemente la cola `q.cmd.email` esperando mensajes para procesar.
+
+**Ajustes realizados:**
+
+1. **Cambio de puerto:** de 8086 a 8087 (había conflicto con Docker)
+
+2. **Eliminamos declaración duplicada de cola:** RabbitMQ ya tiene la cola definida en `definitions.json`, no necesitamos declararla en código
+
+3. **Verificamos compatibilidad de DTOs:** El mensaje que envía Orders debe tener el mismo formato que espera Notify
+
+**Flujo:**
+```
+RabbitMQ (cola q.cmd.email) → Notify consume el mensaje → Procesa y "envía" email (log simulado)
+```
+
+---
+
+### 🚀 Flujo Completo End-to-End
+
+```
+┌─────────┐       ┌─────────┐       ┌──────────┐       ┌────────┐
+│ Postman │──1──►│ Orders  │──2──►│ RabbitMQ │──3──►│ Notify │
+└─────────┘       └─────────┘       └──────────┘       └────────┘
+                    (8081)           (exchange +         (8087)
+                                       queue)
+```
+
+**Paso a paso:**
+
+1. **Postman envía petición HTTP:**
+   ```
+   POST http://localhost:8081/api/orders/test-notification
+   Body: {
+     "pedidoId": 501,
+     "email": "cliente@ejemplo.cl",
+     "asunto": "Pedido confirmado",
+     "mensaje": "Su pedido 501 ha sido confirmado"
+   }
+   ```
+
+2. **Orders recibe y publica en RabbitMQ:**
+   - Convierte el mensaje a formato compatible
+   - Envía al exchange `cmd.direct` con routing key `email.send`
+   - Log: "📧 Notificación publicada en RabbitMQ para pedido: 501"
+
+3. **RabbitMQ enruta el mensaje:**
+   - Exchange `cmd.direct` recibe el mensaje
+   - Por la routing key `email.send`, lo envía a la cola `q.cmd.email`
+
+4. **Notify consume el mensaje:**
+   - Está escuchando `q.cmd.email` constantemente
+   - Deserializa el JSON
+   - Procesa y simula envío de email
+   - Log: "✅ Email enviado exitosamente a: cliente@ejemplo.cl"
+
+---
+
+### 💡 Conceptos Clave para Explicar
+
+#### **1. ¿Por qué RabbitMQ y no llamadas HTTP directas?**
+
+❌ **Sin RabbitMQ (HTTP directo):**
+```
+Orders → HTTP POST → Notify
+```
+**Problemas:**
+- Si Notify está caído, el mensaje se pierde
+- Orders necesita saber la URL de Notify
+- Orders debe esperar respuesta de Notify (más lento)
+
+✅ **Con RabbitMQ:**
+```
+Orders → RabbitMQ → Notify
+```
+**Ventajas:**
+- **Desacoplamiento:** Orders no sabe dónde está Notify
+- **Resiliencia:** Si Notify está caído, el mensaje espera en la cola
+- **Escalabilidad:** Podemos tener 5 instancias de Notify consumiendo
+- **Asincronía:** Orders responde rápido sin esperar
+
+#### **2. Producer vs Consumer**
+
+- **Producer (Productor):** El que **publica** mensajes → **Orders**
+- **Consumer (Consumidor):** El que **consume/lee** mensajes → **Notify**
+
+#### **3. Exchange Types**
+
+- **direct:** Routing exacto (debe coincidir 100% la routing key)
+- **topic:** Routing con patrones (`email.*` = cualquier cosa que empiece con "email")
+- **fanout:** Broadcast (envía a TODAS las colas conectadas)
+
+#### **4. Dead Letter Queue (DLQ)**
+
+Si un mensaje falla 3 veces, en lugar de perderse, va automáticamente a la DLQ configurada. Después podemos:
+- Revisarlo manualmente
+- Reenviarlo a la cola principal
+- Investigar por qué falló
+
+---
+
+### 📊 Cómo Demostrar en la Evaluación
+
+#### **Paso 1: Mostrar RabbitMQ Management UI**
+```
+URL: http://localhost:15672
+Usuario: admin
+Contraseña: admin123
+```
+- Ir a pestaña **Queues** → Mostrar las 6 colas
+- Ir a pestaña **Exchanges** → Mostrar los 3 exchanges
+- Ir a pestaña **Bindings** → Mostrar cómo están conectados
+
+#### **Paso 2: Iniciar Microservicios**
+
+Terminal 1 - Orders:
+```powershell
+cd D:\COSITAS\proyecto_cloudnative_ev1\backend\orders
+mvn spring-boot:run
+```
+Esperar a ver: `Started OrdersApplication in X seconds`
+
+Terminal 2 - Notify:
+```powershell
+cd D:\COSITAS\proyecto_cloudnative_ev1\backend\notify
+mvn spring-boot:run
+```
+Esperar a ver: `Started NotifyApplication in X seconds`
+
+#### **Paso 3: Enviar petición desde Postman**
+
+1. Método: **POST**
+2. URL: `http://localhost:8081/api/orders/test-notification`
+3. Headers: `Content-Type: application/json`
+4. Body:
+   ```json
+   {
+     "pedidoId": 501,
+     "email": "cliente@ejemplo.cl",
+     "asunto": "Pedido confirmado",
+     "mensaje": "Su pedido 501 ha sido confirmado"
+   }
+   ```
+5. Click **Send**
+
+#### **Paso 4: Verificar Resultados**
+
+**En Postman:**
+- Status: `202 Accepted`
+- Body: `"Solicitud de notificación publicada en RabbitMQ"`
+
+**Terminal de Orders:**
+```
+📧 Notificación publicada en RabbitMQ para pedido: 501
+```
+
+**Terminal de Notify:**
+```
+📧 MENSAJE RECIBIDO DE RABBITMQ
+========================================
+Destinatario: cliente@ejemplo.cl
+Asunto: Pedido confirmado
+Cuerpo: Su pedido 501 ha sido confirmado
+Order ID: 501
+========================================
+✅ Email enviado exitosamente a: cliente@ejemplo.cl
+```
+
+**En RabbitMQ UI (Queues → q.cmd.email):**
+- Ver contador de mensajes procesados
+- Ver gráfica de mensajes por segundo
+
+---
+
+### ✅ Checklist Evaluación 2
+
+- [x] RabbitMQ configurado con `definitions.json`
+- [x] 6 colas creadas (3 principales + 3 DLQ)
+- [x] 3 exchanges configurados (direct, topic, dead)
+- [x] DLX/DLQ implementado para resiliencia
+- [x] Orders publicando mensajes (Producer)
+- [x] Notify consumiendo mensajes (Consumer)
+- [x] Mensajes en formato JSON
+- [x] Comunicación asíncrona funcionando end-to-end
+- [x] Demo funcional con Postman
+
+---
+
+### 🎯 Puntos Clave para Responder Preguntas
+
+**P: ¿Qué ventaja tiene RabbitMQ sobre HTTP?**  
+R: Desacoplamiento, resiliencia (si un servicio cae, el mensaje espera), escalabilidad (puedo tener múltiples consumidores), y asincronía (responde rápido sin esperar).
+
+**P: ¿Qué pasa si Notify está caído?**  
+R: El mensaje queda en la cola esperando. Cuando Notify vuelva, procesa todos los mensajes pendientes.
+
+**P: ¿Para qué sirve la DLQ?**  
+R: Para no perder mensajes que fallaron. Podemos revisarlos después y saber qué salió mal.
+
+**P: ¿Qué es un exchange?**  
+R: Un router de mensajes. Recibe mensajes y los envía a colas según reglas (routing key).
+
+**P: ¿Qué es una routing key?**  
+R: Una etiqueta que se pone al mensaje para que el exchange sepa a qué cola enviarlo. Ejemplo: "email.send" va a la cola de emails.
+
+---
+
+**¡Listo para la evaluación! 🚀**

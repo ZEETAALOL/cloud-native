@@ -4,6 +4,20 @@ server:
 spring:
   application:
     name: ms-pedidos360-orders
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:localhost}
+    port: ${SPRING_RABBITMQ_PORT:5672}
+    username: ${SPRING_RABBITMQ_USERNAME:admin}
+    password: ${SPRING_RABBITMQ_PASSWORD:admin123}
+    virtual-host: /
+    connection-timeout: 10000
+    requested-heartbeat: 30
+    template:
+      retry:
+        enabled: true
+        initial-interval: 1000
+        max-interval: 30000
+        multiplier: 2.0
 
 logging:
   level:
