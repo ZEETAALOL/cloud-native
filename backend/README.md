@@ -6,12 +6,13 @@ Todos los microservicios del backend en Spring Boot.
 
 ```
 backend/
-├── bff/         ✅ Backend for Frontend (API Gateway interno)
-├── orders/      ✅ Gestión de pedidos
-├── catalog/     🔴 Catálogo de productos y stock (pendiente)
-├── notify/      🔴 Notificaciones email/push (pendiente)
-├── report/      🔴 Reportería y KPIs (pendiente)
-└── audit/       🔴 Auditoría y trazabilidad (pendiente)
+├── bff/              ✅ Backend for Frontend (API Gateway interno)
+├── orders/           ✅ Gestión de pedidos
+├── rabbitmq-admin/   ✅ Administrador de RabbitMQ (EP3)
+├── notify/           ✅ Notificaciones email/push
+├── catalog/          🔴 Catálogo de productos y stock (pendiente)
+├── report/           🔴 Reportería y KPIs (pendiente)
+└── audit/            🔴 Auditoría y trazabilidad (pendiente)
 ```
 
 ## 🛠️ Stack Común
@@ -50,8 +51,9 @@ mvn spring-boot:run
 |----------|--------|--------|-------------|
 | **bff** | 8080 | ✅ Funcional | API Gateway, valida JWT |
 | **orders** | 8081 | ✅ Funcional | CRUD pedidos, estados |
+| **rabbitmq-admin** | 8087 | ✅ Funcional | Administrador RabbitMQ (EP3) |
+| **notify** | 8086 | ✅ Funcional | Consume RabbitMQ, envía emails |
 | **catalog** | 8082 | 🔴 Pendiente | CRUD productos/stock |
-| **notify** | - | 🔴 Pendiente | Consume RabbitMQ |
 | **report** | 8083 | 🔴 Pendiente | KPIs, consume Kafka |
 | **audit** | 8084 | 🔴 Pendiente | Timeline, consume Kafka |
 

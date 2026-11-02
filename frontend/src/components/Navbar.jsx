@@ -77,6 +77,21 @@ function Navbar() {
             <li className="nav-item mx-2">
               <Link 
                 className="nav-link" 
+                to="/create-order"
+                style={{
+                  color: isActive('/create-order') ? '#a78bfa' : '#ffffff',
+                  fontWeight: isActive('/create-order') ? 'bold' : 'normal',
+                  borderBottom: isActive('/create-order') ? '2px solid #7c3aed' : 'none',
+                  paddingBottom: '4px',
+                  transition: 'all 0.3s'
+                }}
+              >
+                🛒 Crear Pedido
+              </Link>
+            </li>
+            <li className="nav-item mx-2">
+              <Link 
+                className="nav-link" 
                 to="/audit"
                 style={{
                   color: isActive('/audit') ? '#a78bfa' : '#ffffff',

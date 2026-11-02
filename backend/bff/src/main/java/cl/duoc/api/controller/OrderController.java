@@ -1,11 +1,16 @@
 package cl.duoc.api.controller;
 
+import cl.duoc.api.service.OrderMessagingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestClient;
+
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * BFF Controller para Orders - Delega al microservicio ms-pedidos360-orders
@@ -20,6 +25,9 @@ public class OrderController {
     @Value("${microservices.orders.base-url:http://localhost:8081}")
     private String ordersBaseUrl;
 
+    @Autowired
+    private OrderMessagingService orderMessagingService;
+
     private final RestClient restClient;
 
     public OrderController() {
@@ -27,27 +35,47 @@ public class OrderController {
     }
 
     /**
-     * POST /api/orders - Crear pedido
+     * POST /api/orders - Crear pedido Y PUBLICAR A RABBITMQ
      */
     @PostMapping
     public ResponseEntity<?> createOrder(
-            @RequestBody Object request,
+            @RequestBody Map<String, Object> request,
             @RequestHeader(value = "Authorization", required = false) String authHeader) {
         
         log.info("BFF: POST /api/orders - Creando pedido");
         
         try {
-            return restClient.post()
-                .uri(ordersBaseUrl + "/api/orders")
-                .header(HttpHeaders.AUTHORIZATION, authHeader)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(request)
-                .retrieve()
-                .toEntity(Object.class);
+            // Generar ID de pedido
+            String orderId = "ORD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+            String customerEmail = (String) request.getOrDefault("customerEmail", "cliente@example.com");
+            Object totalObj = request.get("total");
+            double total = 0.0;
+            
+            if (totalObj instanceof Number) {
+                total = ((Number) totalObj).doubleValue();
+            } else if (totalObj instanceof String) {
+                try {
+                    total = Double.parseDouble((String) totalObj);
+                } catch (NumberFormatException e) {
+                    total = 0.0;
+                }
+            }
+            
+            // Publicar a las 3 colas de RabbitMQ
+            orderMessagingService.publishOrderCreated(orderId, customerEmail, total);
+            
+            // Responder inmediatamente (asíncrono)
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Pedido creado y enviado a procesamiento",
+                "orderId", orderId,
+                "status", "PROCESSING"
+            ));
+            
         } catch (Exception e) {
-            log.error("Error llamando a Orders service", e);
-            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-                .body("Servicio de pedidos no disponible");
+            log.error("Error creando pedido", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("success", false, "message", "Error al crear pedido"));
         }
     }
 

@@ -118,6 +118,17 @@ export const apiService = {
       throw error;
     }
   },
+
+  // Crear pedido
+  createOrder: async (orderData) => {
+    try {
+      const response = await api.post(API_ENDPOINTS.orders, orderData);
+      return response.data;
+    } catch (error) {
+      console.error('Error al crear pedido:', error);
+      throw error;
+    }
+  },
 };
 
 export default apiService;

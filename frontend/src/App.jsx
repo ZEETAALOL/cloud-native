@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard';
 import Products from './pages/Products';
 import Audit from './pages/Audit';
 import Notify from './pages/Notify';
+import CreateOrder from './pages/CreateOrder';
 import Login from './pages/Login';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -35,6 +36,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/products" element={<Products />} />
+          <Route path="/create-order" element={<CreateOrder />} />
           <Route path="/audit" element={<Audit />} />
           <Route path="/notify" element={<Notify />} />
           <Route path="*" element={<Navigate to="/" replace />} />
